@@ -1,0 +1,11 @@
+{
+  "name": "enable3d-package",
+  "version": "1.0.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "enable3d": "^0.25.2"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.2"
+  }
+}
