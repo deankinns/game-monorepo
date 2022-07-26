@@ -1,9 +1,8 @@
 {
-  "name": "enable3d-package",
+  "name": "yuka-package",
   "version": "1.0.0",
-  "main": "./index.ts",
   "dependencies": {
-    "enable3d": "^0.25.2"
+    "yuka": "^0.7.7"
   },
   "devDependencies": {
     "tsconfig": "*",

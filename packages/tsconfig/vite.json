@@ -6,7 +6,7 @@
     "allowJs": false,
     "esModuleInterop": false,
     "jsx": "react",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": ["dom", "dom.iterable", "esnext", "es2015"],
     "module": "ESNext",
     "noEmit": true,
     "resolveJsonModule": true,

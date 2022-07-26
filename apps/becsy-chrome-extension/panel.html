@@ -1,0 +1,44 @@
+<html>
+<head>
+    <script src="lib/jquery-3.6.0.min.js"></script>
+    <script src="lib/jquery.sparkline.min.js"></script>
+    <link rel="stylesheet" href="lib/bootstrap.min.css"/>
+    <style type="text/css">
+        .jqstooltip {
+            -webkit-box-sizing: content-box;
+            -moz-box-sizing: content-box;
+            box-sizing: content-box;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand">Becsy Inspector</a>
+        <form class="d-flex right">
+            <span id="step" role="button" class="btn btn-outline-primary">Step</span>
+            <span id="startstop" role="button" class="btn btn-outline-primary">Start</span>
+        </form>
+    </div>
+</nav>
+<div id="sparks" class="container-fluid">
+    <div class="card">
+        <h5 class="card-header">Stats</h5>
+        <div class="card-body">
+            <div id="stats" class="d-flex flex-row"></div>
+        </div>
+    </div>
+    <div class="row">
+       <div id="components" class="col-6 overflow-auto" style="max-height: 85vh">
+           <h4>Components</h4>
+       </div>
+       <div id="systems" class="col-6 overflow-auto" style="max-height: 85vh">
+           <h4>Systems</h4>
+       </div>
+    </div>
+    <div id="main" style="overflow: auto"></div>
+</div>
+
+</body>
+<script src="panel.js" type="module"></script>
+</html>

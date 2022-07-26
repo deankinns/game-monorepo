@@ -1,11 +1,14 @@
 {
-  "name": "enable3d-package",
+  "name": "becsy-package",
   "version": "1.0.0",
   "main": "./index.ts",
+  "types": "./index.ts",
+  "type": "module",
   "dependencies": {
-    "enable3d": "^0.25.2"
+    "@lastolivegames/becsy": "^0.14.2"
   },
   "devDependencies": {
+    "@types/yuka": "^0.7.1",
     "tsconfig": "*",
     "typescript": "^4.5.2"
   }
