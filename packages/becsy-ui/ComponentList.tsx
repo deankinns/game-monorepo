@@ -7,7 +7,7 @@ export function ComponentList(props: { parent: EntityPanel }) {
         <ComponentPanel key={`component${component.name}`} parent={props.parent} component={component}/>
     );
     return (
-        <div>
+        <div style={{display: 'flex', flexDirection: 'column'}}>
             {listItems}
         </div>
     );

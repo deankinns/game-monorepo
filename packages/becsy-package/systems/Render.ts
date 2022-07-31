@@ -1,7 +1,7 @@
 import {Entity, System, system} from "@lastolivegames/becsy";
 import {RenderComponent} from "../components";
 
-@system
+@system(s => s.afterWritersOf(RenderComponent))
 export class Render extends System {
     component: any;
 
@@ -19,6 +19,7 @@ export class Render extends System {
     }
 
     execute() {
+        // console.log('render html')
 
         if (this.keysPressed.has('p')) {
             this.createEntity(RenderComponent, {name: 'something'})

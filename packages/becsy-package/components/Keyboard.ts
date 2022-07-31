@@ -23,7 +23,6 @@ export class Keyboard {
     reset(): void {
         window.removeEventListener('keydown', this.onkeydown);
         window.removeEventListener('keyup', this.onkeyup);
-
     }
 
     resetKeys(): void {

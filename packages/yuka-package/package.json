@@ -2,9 +2,12 @@
   "name": "yuka-package",
   "version": "1.0.0",
   "dependencies": {
-    "yuka": "^0.7.7"
+    "yuka": "^0.7.7",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.182",
+    "@types/yuka": "^0.7.1",
     "tsconfig": "*",
     "typescript": "^4.5.2"
   }

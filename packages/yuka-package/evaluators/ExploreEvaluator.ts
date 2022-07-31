@@ -1,7 +1,12 @@
-import {GameEntity, GoalEvaluator, Think} from 'yuka';
+import {GameEntity, GoalEvaluator, Think, Vehicle} from 'yuka';
 import {ExploreGoal} from '../goals/ExploreGoal';
+import {Navigator} from '../goals/ExploreGoal'
 
 // import {BrainComponent} from "../../becsy/components";
+
+type Thinker = Vehicle & {
+    brain: Think<Thinker>,
+} & Navigator
 
 /**
  * Class for representing the explore goal evaluator. Can be used to compute a score that
@@ -9,7 +14,7 @@ import {ExploreGoal} from '../goals/ExploreGoal';
  *
  * @author {@link https://github.com/Mugen87|Mugen87}
  */
-class ExploreEvaluator extends GoalEvaluator<any > {
+class ExploreEvaluator extends GoalEvaluator<Thinker> {
 
     /**
      * Constructs a new explore goal evaluator.
@@ -40,7 +45,7 @@ class ExploreEvaluator extends GoalEvaluator<any > {
      *
      * @param {Enemy} owner - The owner of this goal evaluator.
      */
-    setGoal(owner: any) {
+    setGoal(owner: Thinker) {
 
         const currentSubgoal = owner.brain.currentSubgoal();
 

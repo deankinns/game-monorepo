@@ -1,4 +1,4 @@
-import {Graph, NavMesh, NavNode, TaskQueue, Vector3} from 'yuka';
+import {GameEntity, Graph, NavMesh, NavNode, TaskQueue, Vector3, Vehicle} from 'yuka';
 import { PathPlannerTask } from './PathPlannerTask'
 import {CONFIG} from "./Config";
 
@@ -11,7 +11,7 @@ class PathPlanner {
   navMesh: NavMesh;
   private taskQueue: TaskQueue;
 
-	constructor( navMesh ) {
+	constructor( navMesh: NavMesh ) {
 
 		this.navMesh = navMesh;
 
@@ -27,7 +27,7 @@ class PathPlanner {
 	* @param {Vector3} to - The target point of the path.
 	* @param {Function} callback - The callback which is called after the task is finished.
 	*/
-	findPath( vehicle, from: Vector3, to: Vector3, callback ) {
+	findPath( vehicle: Vehicle, from: Vector3, to: Vector3, callback: any ) {
 
 		const task = new PathPlannerTask( this, vehicle, from, to, callback );
 
@@ -51,7 +51,7 @@ class PathPlanner {
     return result;
   }
 
-  // canMoveInDirection(entity, direction, position): boolean {
+  // canMoveInDirection(entity: GameEntity, direction: Vector3, position: Vector3): boolean {
   //   position.copy( direction ).applyRotation( entity.rotation ).normalize();
   //   position.multiplyScalar( CONFIG.BOT.MOVEMENT.DODGE_SIZE ).add( entity.position );
   //
@@ -59,7 +59,7 @@ class PathPlanner {
   //
   //   return i.position.distanceTo(entity.position) <= 10;
   // }
-  canMoveInDirection(entity, direction, position ) {
+  canMoveInDirection(entity: GameEntity, direction: Vector3, position: Vector3) {
 
     position.copy( direction ).applyRotation( entity.rotation ).normalize();
     position.multiplyScalar( CONFIG.BOT.MOVEMENT.DODGE_SIZE ).add( entity.position );

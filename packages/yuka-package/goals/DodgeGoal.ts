@@ -1,5 +1,6 @@
-import {Goal, CompositeGoal, Vector3} from 'yuka';
+import {Goal, CompositeGoal, Vector3, Vehicle} from 'yuka';
 import {SeekToPositionGoal} from './SeekToPositionGoal';
+import {Feature} from "../core/Feature";
 
 const right = new Vector3(1, 0, 0);
 const left = new Vector3(-1, 0, 0);
@@ -14,7 +15,7 @@ class DodgeGoal extends CompositeGoal<any> {
   public right: any;
   public targetPosition: Vector3;
 
-  constructor(owner, right) {
+  constructor(owner: Vehicle, right: boolean) {
 
     super(owner);
 
@@ -50,11 +51,11 @@ class DodgeGoal extends CompositeGoal<any> {
 
       // dodge to left as long as there is enough space
 
-      const canMoveInDirection = (entity, direction, target) => {
-        return true;
-      }
+      // const canMoveInDirection = (entity, direction, target) => {
+      //   return true;
+      // }
 
-      if (canMoveInDirection(owner, left, this.targetPosition)) {
+      if (Feature.canMoveInDirection(owner, left, this.targetPosition)) {
 
         this.addSubgoal(new SeekToPositionGoal(owner, this.targetPosition));
 

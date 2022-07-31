@@ -1,23 +1,24 @@
 import * as React from "react";
 import {Component} from "react";
 import {Entity, System} from "@lastolivegames/becsy";
-import {GameWindow} from "./GameWindow";
+// import {GameWindow} from "../../apps/ecs-debug/src/GameWindow";
 import {RenderComponent, ToBeDeleted} from "becsy-package";
-import * as components from "becsy-package"
+// import * as components from "../../node_modules/becsy-package"
 import {ComponentPanel} from "./ComponentPanel";
 import {EntityList} from "./EntityList";
 import {ComponentList} from "./ComponentList";
 
+let components = [];
 
 export class EntityPanel extends Component<any, any> {
 
     entity: Entity;
-    parent: GameWindow;
+    parent: React.Component & { actions: any[], world: any };
 
     has: string[] = []
     hasNot: string[] = []
 
-    constructor(props: { entity: Entity, parent: GameWindow }) {
+    constructor(props: { entity: Entity, parent: React.Component & { actions: [], world: any } }) {
         super(props);
         this.entity = props.entity;
         this.parent = props.parent;
@@ -26,37 +27,46 @@ export class EntityPanel extends Component<any, any> {
         }
         this.handleChange = this.handleChange.bind(this);
 
-        //@ts-ignore
-
+        // components = this.parent.world.world.__dispatcher.registry.types;
     }
 
     sortComponents() {
         this.has = []
         this.hasNot = []
         //@ts-ignore
-        const types = this.parent.world.world.__dispatcher.registry.types.filter(type => type.__binding && this.name !== 'Alive')
+        const types = this.parent.world.world.__dispatcher.registry.types.filter(type => type.__binding && type.name !== 'Alive')
         //@ts-ignore
-        this.has = types.filter(type => this.entity.has(type))
+        this.has = types.filter(type => {
+            try {
+                return this.entity.has(type)
+            } catch (e) {
+                return false;
+            }
+        })
         //@ts-ignore
-        this.hasNot = types.filter(type => !this.entity.has(type))
+        this.hasNot = types.filter(type => {
+            try {
+                return !this.entity.has(type)
+            } catch (e) {
+                return false;
+            }
+        })
     }
 
     entityOptions() {
-        // const keys = ['Select']
-        // this.sortComponents()
-        return [{name:'Select'}, ...this.hasNot].map((k: any) =>
+        return [{name: 'Select'}, ...this.hasNot].map((k: any) =>
             <option key={k.name}>{k.name}</option>
         )
     }
 
     addComponent() {
         this.parent.actions.push({
-            action: (sys: any, entity: any, data: {component: string}) => {
+            action: (sys: any, entity: any, data: { component: string }) => {
 
                 //@ts-ignore
-                const component = components[data.component]
+                const types = this.parent.world.world.__dispatcher.registry.types.filter(type => type.name === data.component)
+                entity.add(types[0])
 
-                entity.add(component)
             }, entity: this.entity, data: {component: this.state.component}
         })
 
@@ -71,23 +81,19 @@ export class EntityPanel extends Component<any, any> {
         try {
             return (
                 <div>
-                    <div>
+                    <div style={{display: 'flex', flexDirection: 'row'}}>
                         <select value={this.state.component} onChange={this.handleChange}>
                             {this.entityOptions()}
                         </select>
                         <button onClick={() => this.addComponent()}>Add</button>
+                        <button onClick={() => this.parent.actions.push({
+                            action: (sys: any, entity: any) => {
+                                entity.add(ToBeDeleted);
+                            }, entity: this.props.entity
+                        })}>Delete
+                        </button>
                     </div>
-
-                    <p>{this.props.entity.read(RenderComponent).name}</p>
-
-                    <ComponentList parent={this} />
-
-                    <button onClick={() => this.parent.actions.push({
-                        action: (sys: any, entity: any) => {
-                            entity.add(ToBeDeleted);
-                        }, entity: this.props.entity
-                    })}>Delete
-                    </button>
+                    <ComponentList parent={this}/>
                 </div>
             );
         } catch (e) {

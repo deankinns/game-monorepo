@@ -1,9 +1,8 @@
 import * as React from "react";
 import {GameWorld, RenderComponent, Render} from "becsy-package";
-import {EntityPanel} from "./EntityPanel";
-import {EntityList} from "./EntityList";
+import {EntityList, EntityPanel} from "becsy-ui";
 
-import * as systems from 'becsy-package';
+// import * as systems from 'becsy-package';
 
 export class GameWindow extends React.Component<any, any> {
 

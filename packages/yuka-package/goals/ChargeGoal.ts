@@ -1,4 +1,4 @@
-import { Goal, CompositeGoal, Vector3 } from 'yuka';
+import {Goal, CompositeGoal, Vector3, Vehicle} from 'yuka';
 import { FollowPathGoal } from './FollowPathGoal';
 import { FindPathGoal } from './FindPathGoal';
 
@@ -9,7 +9,7 @@ import { FindPathGoal } from './FindPathGoal';
 */
 export class ChargeGoal extends CompositeGoal<any> {
 
-	constructor( owner ) {
+	constructor( owner: Vehicle ) {
 
 		super( owner );
 

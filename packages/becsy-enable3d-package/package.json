@@ -6,9 +6,12 @@
   "type": "module",
   "dependencies": {
     "@lastolivegames/becsy": "^0.14.2",
-    "enable3d-package": "*"
+    "enable3d-package": "*",
+    "becsy-package": "*",
+    "enable3d": "^0.25.2"
   },
   "devDependencies": {
+    "@enable3d/three-graphics": "^0.25.2",
     "tsconfig": "*",
     "typescript": "^4.5.2"
   }

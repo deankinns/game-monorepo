@@ -8,7 +8,6 @@ function App() {
     return (
         <div id={'App'}>
             <GameWindow id={1}/>
-            <Button></Button>
         </div>
 
     );

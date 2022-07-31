@@ -1,5 +1,6 @@
-import {FollowPathBehavior, Goal, OnPathBehavior} from 'yuka';
+import {FollowPathBehavior, Goal, OnPathBehavior, SteeringBehavior, Vehicle} from 'yuka';
 import {BufferGeometry} from 'three';
+// import {SteeringBehavior} from "yuka/src/steering/SteeringBehavior";
 
 /**
  * Sub-goal for seeking the defined destination point.
@@ -11,17 +12,16 @@ class FollowPathGoal extends Goal<any> {
 
   public to: any;
 
-  constructor(owner) {
+  constructor(owner: Vehicle) {
 
     super(owner);
 
     this.to = null;
 
-    const hasFollowPath = this.owner.steering.behaviors.filter(b => b instanceof FollowPathBehavior)
-    const hasOnPath = this.owner.steering.behaviors.filter(b => b instanceof OnPathBehavior)
+    const hasFollowPath = this.owner.steering.behaviors.filter((b: SteeringBehavior) => b instanceof FollowPathBehavior)
+    const hasOnPath = this.owner.steering.behaviors.filter((b: SteeringBehavior) => b instanceof OnPathBehavior)
 
     if (hasFollowPath.length < 1) {
-
       const followPathBehavior = new FollowPathBehavior();
       followPathBehavior.active = false
       followPathBehavior.nextWaypointDistance = 20
@@ -81,7 +81,7 @@ class FollowPathGoal extends Goal<any> {
 
         const waypoint = path[i];
 
-        followPathBehavior.path.add(waypoint);
+        followPathBehavior?.path.add(waypoint);
 
       }
 

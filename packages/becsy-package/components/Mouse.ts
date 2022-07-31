@@ -23,7 +23,8 @@ export class Mouse {
     downHandler = (e: { button: string | number; }): void => {
         // @ts-ignore
         this.setKeyState(this.buttons[e.button], 'down');
-        this.changed = true;
+        // console.log('down', e.button)
+        // this.changed = true;
     }
 
     moveHandler = (e: { clientX: number; clientY: number; movementX: any; mozMovementX: any; webkitMovementX: any; movementY: any; mozMovementY: any; webkitMovementY: any; }) => {
@@ -41,13 +42,13 @@ export class Mouse {
         // console.log('move');
         this.setKeyState('clientX', this.clientX);
         this.setKeyState('clientY', this.clientY);
-        this.changed = true;
+        // this.changed = true;
     }
 
     upHandler = (e: { button: string | number; }) => {
         // @ts-ignore
         this.setKeyState(this.buttons[e.button], 'up');
-        this.changed = true;
+        // this.changed = true;
     }
 
     lockHandler = () => {
@@ -64,7 +65,7 @@ export class Mouse {
             this.setKeyState('scroll', 0)
         }
         this.setKeyState('scroll', this.getKeyState('scroll').current + e.deltaY)
-        this.changed = true
+        // this.changed = true
     }
 
 
@@ -73,8 +74,8 @@ export class Mouse {
         const element = this.element ?? document
         // @ts-ignore
         element.addEventListener('mousemove', this.moveHandler, false);
-        element.addEventListener('pointerdown', this.downHandler, true);
-        element.addEventListener('pointerup', this.upHandler, false);
+        element.addEventListener('mousedown', this.downHandler, false);
+        element.addEventListener('mouseup', this.upHandler, false);
         element.addEventListener('pointerlockchange', this.lockHandler, false);
         element.addEventListener('contextmenu', this.contextMenuHandler, false);
         element.addEventListener('wheel', this.wheelHandler, false);
@@ -83,12 +84,13 @@ export class Mouse {
     }
 
     reset(): void {
+        const element = this.element ?? document
         // @ts-ignore
-        this.element.removeEventListener('mousemove', this.moveHandler);
-        this.element.removeEventListener('pointerdown', this.downHandler);
-        this.element.removeEventListener('pointerup', this.upHandler);
-        document.removeEventListener('pointerlockchange', this.lockHandler);
-        this.element.removeEventListener('contextmenu', this.contextMenuHandler);
+        element.removeEventListener('mousemove', this.moveHandler);
+        element.removeEventListener('mousedown', this.downHandler);
+        element.removeEventListener('mouseup', this.upHandler);
+        element.removeEventListener('pointerlockchange', this.lockHandler);
+        element.removeEventListener('contextmenu', this.contextMenuHandler);
         this.changed = false;
     }
 

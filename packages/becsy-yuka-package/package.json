@@ -1,0 +1,11 @@
+{
+  "name": "becsy-yuka-package",
+  "version": "1.0.0",
+  "dependencies": {
+    "yuka-package": "*"
+  },
+  "devDependencies": {
+    "tsconfig": "*",
+    "typescript": "^4.5.3"
+  }
+}

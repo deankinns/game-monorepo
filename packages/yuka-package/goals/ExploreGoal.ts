@@ -1,8 +1,13 @@
-import {CompositeGoal, Goal, Vector3} from 'yuka';
+import {CompositeGoal, Goal, Vector3, Vehicle} from 'yuka';
 import { FollowPathGoal } from './FollowPathGoal';
 import { FindPathGoal } from './FindPathGoal';
+import {PathPlanner} from "../core/PathPlanner";
+import {InWorld} from "../core";
 
-
+// export type Navigator = Vehicle & {
+// 	world: {pathPlanner: PathPlanner}
+// }
+type Navigator = Vehicle & InWorld
 /**
 * Top-Level goal that is used to manage the map exploration
 * of the enemy.
@@ -12,21 +17,21 @@ import { FindPathGoal } from './FindPathGoal';
 */
 class ExploreGoal extends CompositeGoal <any> {
 
-	constructor( owner ) {
+	constructor(owner: Navigator) {
 
-		super( owner );
+		super(owner);
 
 	}
 
 	activate() {
 
-		const owner = this.owner;
+		const owner = this.owner as Navigator;
 
 		// if this goal is reactivated then there may be some existing subgoals that must be removed
 
 		this.clearSubgoals();
 
-		const region = owner.data.pathPlanner.navMesh.getRandomRegion();
+		const region = owner.world?.PathPlanner.navMesh.getRandomRegion();
 
 		const from = new Vector3().copy( owner.position );
 		const to = new Vector3().copy( region.centroid );

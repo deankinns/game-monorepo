@@ -15,3 +15,5 @@ export const STATUS_DEAD = 14;
 export const HEALTH_PACK = 15;
 export const MESSAGE_HIT = 'HIT';
 export const MESSAGE_DEAD = 'DEAD';
+
+export const TYPE_COLLECTIBLE = 0x1

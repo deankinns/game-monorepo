@@ -9,6 +9,7 @@ export class MouseSystem extends System {
         for (const entity of this.mouse.added) {
             entity.write(MouseComponent).initialize();
         }
+        this.accessRecentlyDeletedData(true)
         for (const entity of this.mouse.removed) {
             entity.write(MouseComponent).reset();
         }
