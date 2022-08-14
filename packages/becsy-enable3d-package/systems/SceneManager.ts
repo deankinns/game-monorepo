@@ -1,49 +1,55 @@
-import {Entity, system, System, co} from "@lastolivegames/becsy";
-import {Project, Scene3D} from "enable3d";
-import {ProjectComponent, SceneComponent} from "../components/Scene";
-import {Render} from "./Render";
-import {CameraComponent} from "../components";
-import {Object3DComponent} from "../components/Obect3D";
+import { Entity, system, System, co } from "@lastolivegames/becsy";
 
-@system(s => s.before(Render).beforeReadersOf(ProjectComponent, SceneComponent))
+import { SceneComponent } from "../components/Scene";
+// import {Render} from "./Render";
+import { CameraComponent } from "../components";
+import { Object3DComponent } from "../components/Obect3D";
+import { HealthSystem, Render } from "becsy-package";
+import { Scene } from "three";
+
+@system((s) =>
+  s.before(Render).beforeReadersOf(SceneComponent).after(HealthSystem)
+)
 export class SceneManagerSystem extends System {
-    //@ts-ignore
-    projectObject: Project;
+  //@ts-ignore
+  sceneObject: Scene;
 
-    scenes = this.query(q => q.with(SceneComponent).usingAll.current.write)
+  scene = this.singleton.write(SceneComponent);
 
-    initialize() {
-        this.singleton.write(ProjectComponent).project = this.projectObject;
+  objects = this.query((q) => q.usingAll.read.with(Object3DComponent).write);
 
-        // @ts-ignore
-        for (const scene of this.projectObject.scenes) {
-            this.createEntity(SceneComponent, {name: scene[0], scene: scene[1]});
-        }
+  initialize() {
+    this.scene.scene = this.sceneObject;
+  }
 
-        this.createEntity(
-            CameraComponent, {camera: this.projectObject.camera},
-            // RenderComponent
-        )
-    }
+  execute() {
+    // for (const scene of this.projectObject.scenes) {
+    //     const currentScene = this.scene;
+    //     if (scene[1] !== currentScene.scene && scene[1].isRunning()) {
+    //         this.scene.scene = scene[1]
+    //     }
+    // }
 
-    execute() {
-        for (const entity of this.scenes.current) {
-            this.updateSceneChildren(entity.hold())
-        }
-    }
+    this.updateSceneChildren();
+  }
 
-    @co *updateSceneChildren(entity: Entity) {
-        yield;
-        co.scope(entity);  // scope ourselves to our very own zombie
-        // co.cancelIfComponentMissing(entity);  // cancel if our zombie gets better
-        co.cancelIfCoroutineStarted();
-        const scene = entity.read(SceneComponent).scene.scene
+  //@ts-ignore
+  @co *updateSceneChildren() {
+    const sceneObj = this.scene?.scene;
+    yield;
+    co.cancelIfCoroutineStarted();
+    co.cancelIf(() => !sceneObj);
 
-        scene.traverse(e => {
-            if (!e.userData.entity) {
-                e.userData.entity = this.createEntity(Object3DComponent, {object: e})
-            }
-        })
-        yield
-    }
+    sceneObj?.traverse((e) => {
+      if (
+        e.userData.entity &&
+        e.userData.entity.alive &&
+        !e.userData.entity.has(Object3DComponent)
+      ) {
+        // e.userData.entity = this.createEntity(Object3DComponent, {object: e}).hold()
+        e.userData.entity.add(Object3DComponent, { object: e });
+      }
+    });
+    yield co.waitForFrames(100);
+  }
 }

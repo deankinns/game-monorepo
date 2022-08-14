@@ -1,0 +1,19 @@
+{
+  "name": "becsy-enable3d-yuka-package",
+  "version": "1.0.0",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "type": "module",
+  "dependencies": {
+    "@lastolivegames/becsy": "^0.14.2",
+    "enable3d": "^0.25.2",
+    "becsy-package": "*",
+    "becsy-enable3d-package": "*",
+    "becsy-yuka-package": "*"
+  },
+  "devDependencies": {
+    "@enable3d/three-graphics": "^0.25.2",
+    "tsconfig": "*",
+    "typescript": "^4.5.2"
+  }
+}

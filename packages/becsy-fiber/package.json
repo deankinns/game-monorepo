@@ -1,0 +1,27 @@
+{
+  "name": "becsy-fiber",
+  "version": "0.0.0",
+  "main": "./index.tsx",
+  "types": "./index.tsx",
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint *.ts*"
+  },
+  "dependencies": {
+    "@react-three/fiber": "^8.2.2",
+    "@react-three/drei": "^9.19.6",
+    "becsy-package": "*",
+    "flatted": "^3.2.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "fiber-package": "*"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.15",
+    "@types/react-dom": "^18.0.6",
+    "eslint": "^8.21.0",
+    "eslint-config-custom": "*",
+    "tsconfig": "*",
+    "typescript": "^4.5.2"
+  }
+}

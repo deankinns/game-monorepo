@@ -1,1 +1,1 @@
-export * from './ExploreGoal'
+export * from "./ExploreGoal";

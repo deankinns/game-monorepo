@@ -1,65 +1,51 @@
-import {Goal, CompositeGoal, Vector3, Vehicle} from 'yuka';
-import { FollowPathGoal } from './FollowPathGoal';
-import { FindPathGoal } from './FindPathGoal';
+import { Goal, CompositeGoal, Vector3, Vehicle } from "yuka";
+import { FollowPathGoal } from "./FollowPathGoal";
+import { FindPathGoal } from "./FindPathGoal";
 
 /**
-* Sub-goal for seeking the enemy's target during a battle.
-*
-* @author {@link https://github.com/Mugen87|Mugen87}
-*/
+ * Sub-goal for seeking the enemy's target during a battle.
+ *
+ * @author {@link https://github.com/Mugen87|Mugen87}
+ */
 export class ChargeGoal extends CompositeGoal<any> {
+  constructor(owner: Vehicle) {
+    super(owner);
+  }
 
-	constructor( owner: Vehicle ) {
+  activate() {
+    this.clearSubgoals();
 
-		super( owner );
+    const owner = this.owner;
 
-	}
+    // seek to the current position of the target
 
-	activate() {
+    const target = owner.targetSystem.getTarget();
 
-		this.clearSubgoals();
+    // it's important to use path finding since an enemy might be visible
+    // but not directly reachable via a seek behavior because of an obstacle
 
-		const owner = this.owner;
+    const from = new Vector3().copy(owner.position);
+    const to = new Vector3().copy(target.position);
 
-		// seek to the current position of the target
+    // setup subgoals
 
-		const target = owner.targetSystem.getTarget();
+    this.addSubgoal(new FindPathGoal(owner, from, to));
+    this.addSubgoal(new FollowPathGoal(owner));
+  }
 
-		// it's important to use path finding since an enemy might be visible
-		// but not directly reachable via a seek behavior because of an obstacle
+  execute() {
+    // stop executing if the traget is not visible anymore
 
-		const from = new Vector3().copy( owner.position );
-		const to = new Vector3().copy( target.position );
+    if (this.owner.targetSystem.isTargetShootable() === false) {
+      this.status = Goal.STATUS.COMPLETED;
+    } else {
+      this.status = this.executeSubgoals();
 
-		// setup subgoals
+      this.replanIfFailed();
+    }
+  }
 
-		this.addSubgoal( new FindPathGoal( owner, from, to ) );
-		this.addSubgoal( new FollowPathGoal( owner ) );
-
-	}
-
-	execute() {
-
-		// stop executing if the traget is not visible anymore
-
-		if ( this.owner.targetSystem.isTargetShootable() === false ) {
-
-			this.status = Goal.STATUS.COMPLETED;
-
-		} else {
-
-			this.status = this.executeSubgoals();
-
-			this.replanIfFailed();
-
-		}
-
-	}
-
-	terminate() {
-
-		this.clearSubgoals();
-
-	}
-
+  terminate() {
+    this.clearSubgoals();
+  }
 }

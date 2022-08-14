@@ -19,7 +19,9 @@
     "importHelpers": true,
     "downlevelIteration": true,
     "allowSyntheticDefaultImports": true,
-    "noImplicitReturns": true
+    "allowUnusedLabels": true,
+    "noImplicitReturns": true,
+    "emitDecoratorMetadata": false
   },
   "exclude": [
     "node_modules"

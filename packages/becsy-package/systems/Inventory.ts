@@ -1,11 +1,15 @@
-import {component, Entity, field, system, System} from "@lastolivegames/becsy";
-
 import {
-    Keyboard,
-    Mouse, RenderComponent,
-} from "../components";
-import {Healing} from "./Health";
+    component,
+    Entity,
+    field,
+    system,
+    System,
+} from "@lastolivegames/becsy";
 
+import {Healing, Keyboard, Mouse, RenderComponent, Target} from "../components";
+import {Render} from "./Render";
+
+// import {Healing} from "./Health";
 
 @component
 export class Packed {
@@ -14,7 +18,7 @@ export class Packed {
 
 @component
 export class Inventory {
-    @field.backrefs(Packed, 'holder') declare contents: Entity[];
+    @field.backrefs(Packed, "holder") declare contents: Entity[];
 }
 
 @component
@@ -23,22 +27,23 @@ export class Equipped {
 }
 
 @component
-export class Collectible {
-
+export class Collectable {
 }
 
-@system(s => s.afterWritersOf(Inventory, Equipped, Collectible))
+@system((s) => s.afterWritersOf(Inventory, Equipped, Collectable).before(Render))
 export class InventorySystem extends System {
-
-
-    inventories = this.query(q => q.current.with(Inventory).current.write);
-
+    inventories = this.query((q) => q.current.with(Inventory).current.write);
+    packed = this.query((q) => q.current.with(Packed).current.added.write.using(RenderComponent, Target).write);
 
     makeHealthPack(point: any) {
+        this.createEntity(Healing, Collectable, RenderComponent);
+    }
 
-
-        this.createEntity(
-            Healing, Collectible, RenderComponent
-        )
+    execute() {
+        for (const packed of this.packed.added) {
+            if (packed.has(RenderComponent)) {
+                packed.remove(RenderComponent);
+            }
+        }
     }
 }

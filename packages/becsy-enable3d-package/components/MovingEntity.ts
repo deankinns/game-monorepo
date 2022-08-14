@@ -1,6 +1,5 @@
-import {component, field, Type} from "@lastolivegames/becsy";
-import {Vector3} from "three";
-
+import { component, field, Type } from "@lastolivegames/becsy";
+import { Vector3 } from "three";
 
 // const v3Type = Type.vector(Type.float64, ['x', 'y', 'z'], Vector3);
 //

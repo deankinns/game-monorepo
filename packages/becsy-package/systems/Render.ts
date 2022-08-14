@@ -1,43 +1,79 @@
 import {Entity, System, system} from "@lastolivegames/becsy";
-import {RenderComponent} from "../components";
+import {Keyboard, RenderComponent} from "../components";
+import {Deleter} from "./Deleter";
 
-@system(s => s.afterWritersOf(RenderComponent))
+@system((s) => s.afterWritersOf(RenderComponent).before(Deleter))
 export class Render extends System {
-    component: any;
+    // component: any;
 
-    items = this.query(q => q.with(RenderComponent).usingAll.added.removed.write);
+    reference: any;
+
+    selected: string[] = [];
+    // show: any[] = [];
+
+    items = this.query((q) => q.usingAll.current.added.removed.write);
+    render = this.query(q => q.with(RenderComponent).added.current.removed.write.usingAll.read);
+
     private readonly keysPressed = new Set<string>();
 
+    async prepare() {
+        this.reference.current = this;
+    }
+
     initialize(): void {
-        document.addEventListener('keydown', (event: KeyboardEvent) => {
-            this.keysPressed.add(event.key);  // add the pressed key to our set
+
+
+        document.addEventListener("keydown", (event: KeyboardEvent) => {
+            this.keysPressed.add(event.key); // add the pressed key to our set
         });
 
-        document.addEventListener('keyup', (event: KeyboardEvent) => {
-            this.keysPressed.delete(event.key);  // remove the released key from our set
+        document.addEventListener("keyup", (event: KeyboardEvent) => {
+            this.keysPressed.delete(event.key); // remove the released key from our set
         });
+
+        // this.component.renderSystem = this;
     }
 
     execute() {
-        // console.log('render html')
+        let refresh = this.items.added.length > 0 || this.items.removed.length > 0 || this.render.added.length > 0 || this.render.removed.length > 0;
 
-        if (this.keysPressed.has('p')) {
-            this.createEntity(RenderComponent, {name: 'something'})
-        }
-        for (const action of this.component.actions) {
-            action.action(this, action.entity, action.data);
-        }
-        this.component.actions = [];
-
-        for (const item of this.items.added) {
-            this.component.children.push(item.hold())
+        if (this.keysPressed.has("p")) {
+            this.createEntity(RenderComponent, {name: "something"});
         }
 
-        this.accessRecentlyDeletedData(true)
-        for (const item of this.items.removed) {
-            this.component.children = this.component.children.filter((e: Entity) => {
-                return !e.isSame(item);
-            });
+
+        const selected = this.selected;
+
+        // @ts-ignore
+        // const components = this.__dispatcher.registry.types.filter((type: any) => {
+        //   // console.log(type.name, selected)
+        //   if (selected.includes(type.name)) {
+        //     return true;
+        //   }
+        // });
+
+        // this.reference.current = this.items.current;
+
+        // this.show = this.items.current.filter((item) =>
+        //   item.hasAllOf(...components)
+        // );
+
+        if (refresh) {
+            console.log('update')
+            this.cb(this)
+            // this.component.setState({ frame: this.time });
         }
+
+        // this.accessRecentlyDeletedData(true)
+
+    }
+
+    cblist = new Map();
+
+    cb(system: System) {
+        // console.log('cb')
+        this.cblist.forEach((cb) => {
+            cb(system)
+        })
     }
 }

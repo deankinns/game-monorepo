@@ -1,7 +1,10 @@
-import {Goal, CompositeGoal, Vector3, MemoryRecord} from 'yuka';
-import {FollowPathGoal} from './FollowPathGoal';
-import {FindPathGoal} from './FindPathGoal';
-import {Memory, AIComponent, Target} from "../../becsy";
+import { Goal, CompositeGoal, Vector3, MemoryRecord } from "yuka";
+import { FollowPathGoal } from "./FollowPathGoal";
+import { FindPathGoal } from "./FindPathGoal";
+// import {Memory, AIComponent, Target} from "../../becsy";
+export const Memory = () => {};
+export const Target = () => {};
+export const AIComponent = () => {};
 
 /**
  * Sub-goal for searching the current target of an enemy.
@@ -9,16 +12,12 @@ import {Memory, AIComponent, Target} from "../../becsy";
  * @author {@link https://github.com/Mugen87|Mugen87}
  */
 class HuntGoal extends CompositeGoal<any> {
-
   record: MemoryRecord;
   constructor(owner) {
-
     super(owner);
-
   }
 
   activate() {
-
     this.clearSubgoals();
 
     const owner = this.owner;
@@ -27,7 +26,7 @@ class HuntGoal extends CompositeGoal<any> {
 
     const memory = owner.entity.read(Memory).system;
     const targetEntity = owner.entity.read(Target).value;
-    const target = targetEntity.read(AIComponent).object
+    const target = targetEntity.read(AIComponent).object;
 
     if (!memory.hasRecord(target)) {
       this.status = Goal.STATUS.FAILED;
@@ -47,13 +46,10 @@ class HuntGoal extends CompositeGoal<any> {
 
     this.addSubgoal(new FindPathGoal(owner, from, to));
     this.addSubgoal(new FollowPathGoal(owner));
-
   }
 
   execute() {
-
     const owner = this.owner;
-
 
     if (!this.record) {
       this.status = Goal.STATUS.FAILED;
@@ -62,49 +58,39 @@ class HuntGoal extends CompositeGoal<any> {
     // hunting is not necessary if the target becomes visible again
 
     // if (owner.targetSystem.isTargetShootable()) {
-    if (this.record.visible && this.record.entity.position.distanceTo(owner.position) < 5) {
-
+    if (
+      this.record.visible &&
+      this.record.entity.position.distanceTo(owner.position) < 5
+    ) {
       this.status = Goal.STATUS.COMPLETED;
-
     } else {
-
       this.status = this.executeSubgoals();
 
       // if the enemy is at the last sensed position, forget about
       // the bot, update the target system and consider this goal as completed
 
       if (this.completed()) {
-
-
         const memory = owner.entity.read(Memory).system;
         const targetEntity = owner.entity.read(Target).value;
-        const target = targetEntity.read(AIComponent).object
+        const target = targetEntity.read(AIComponent).object;
 
-        memory.deleteRecord(target)
+        memory.deleteRecord(target);
         // memory.update()
         // owner.entity.read(Target)
 
         // const target = owner.targetSystem.getTarget();
         // owner.removeEntityFromMemory(target);
         // owner.targetSystem.update();
-
       } else {
-
         this.replanIfFailed();
-
       }
-
     }
-
   }
 
   terminate() {
-
     this.record = null;
     this.clearSubgoals();
-
   }
-
 }
 
-export {HuntGoal};
+export { HuntGoal };

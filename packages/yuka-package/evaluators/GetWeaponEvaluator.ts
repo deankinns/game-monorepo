@@ -1,6 +1,6 @@
-import {GoalEvaluator, MathUtils} from 'yuka';
-import {Feature} from '../core/Feature';
-import {GetItemGoal} from '../goals/GetItemGoal';
+import { GoalEvaluator, MathUtils } from "yuka";
+import { Feature } from "../core/Feature";
+import { GetItemGoal } from "../goals/GetItemGoal";
 // import {BrainComponent} from "../../becsy/components";
 
 /**
@@ -21,12 +21,10 @@ class GetWeaponEvaluator extends GoalEvaluator<any> {
    * @param {Number} itemType - The item type.
    */
   constructor(characterBias = 1, itemType = null) {
-
     super(characterBias);
 
     this.itemType = itemType;
     this.tweaker = 0.15; // value used to tweak the desirability
-
   }
 
   /**
@@ -37,7 +35,6 @@ class GetWeaponEvaluator extends GoalEvaluator<any> {
    * @return {Number} The desirability.
    */
   calculateDesirability(owner) {
-
     let desirability = 0;
 
     //if ( owner.isItemIgnored( this.itemType ) === false ) {
@@ -46,14 +43,14 @@ class GetWeaponEvaluator extends GoalEvaluator<any> {
     const weaponScore = Feature.individualWeaponStrength(owner, this.itemType);
     const healthScore = Feature.health(owner);
 
-    desirability = this.tweaker * (1 - weaponScore) * healthScore / distanceScore;
+    desirability =
+      (this.tweaker * (1 - weaponScore) * healthScore) / distanceScore;
 
     desirability = MathUtils.clamp(desirability, 0, 1);
 
     //}
 
     return desirability;
-
   }
 
   /**
@@ -62,21 +59,16 @@ class GetWeaponEvaluator extends GoalEvaluator<any> {
    * @param {Enemy} owner - The owner of this goal evaluator.
    */
   setGoal(owner) {
-
-    const brain = owner.entity.read('BrainComponent').object
+    const brain = owner.entity.read("BrainComponent").object;
 
     const currentSubgoal = brain.currentSubgoal();
 
-    if ((currentSubgoal instanceof GetItemGoal) === false) {
-
+    if (currentSubgoal instanceof GetItemGoal === false) {
       brain.clearSubgoals();
 
       brain.addSubgoal(new GetItemGoal(owner, this.itemType));
-
     }
-
   }
-
 }
 
-export {GetWeaponEvaluator};
+export { GetWeaponEvaluator };
