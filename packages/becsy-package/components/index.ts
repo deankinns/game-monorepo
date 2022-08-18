@@ -6,6 +6,7 @@ export * from "./Keyboard";
 export * from "./Selected";
 export * from "./Health";
 export * from "./State";
+export * from "./Weapon";
 
 @component
 export class RenderComponent {

@@ -94,11 +94,11 @@ export const EntityPanel = ({entity}: { entity: GameEntity }) => {
                 <div
                     style={{
                         backgroundColor: entity.components.has(componentRegistry.Health) ? 'blue' : 'red',
-                        height: 50,
-                        width: 50,
+                        height: 10,
+                        width: 10,
                         position: "absolute",
-                        top: (entity.position.z * 10) + 100,
-                        left: (entity.position.x * 10) + 100,
+                        top: (entity.position.z * 10) + 500,
+                        left: (entity.position.x * 10) + 1000,
                     }}
                 ></div>
                 {/*<ComponentList parent={this} />*/}

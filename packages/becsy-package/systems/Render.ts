@@ -59,7 +59,7 @@ export class Render extends System {
         // );
 
         if (refresh) {
-            console.log('update')
+            // console.log('update')
             this.cb(this)
             // this.component.setState({ frame: this.time });
         }

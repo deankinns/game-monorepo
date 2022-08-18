@@ -1,0 +1,8 @@
+{
+  "name": "three-ui",
+  "version": "1.0.0",
+  "dependencies": {
+    "three": "^0.139.0",
+    "react": "^18.2.0"
+  }
+}

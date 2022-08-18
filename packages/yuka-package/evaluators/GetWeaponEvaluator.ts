@@ -1,6 +1,7 @@
-import { GoalEvaluator, MathUtils } from "yuka";
+import {GameEntity, GoalEvaluator, MathUtils} from "yuka";
 import { Feature } from "../core/Feature";
 import { GetItemGoal } from "../goals/GetItemGoal";
+import {componentRegistry, Vehicle} from "../entities";
 // import {BrainComponent} from "../../becsy/components";
 
 /**
@@ -13,6 +14,7 @@ import { GetItemGoal } from "../goals/GetItemGoal";
 class GetWeaponEvaluator extends GoalEvaluator<any> {
   private itemType: any;
   private tweaker: number;
+  private item?: GameEntity;
 
   /**
    * Constructs a new get weapon goal evaluator.
@@ -34,7 +36,7 @@ class GetWeaponEvaluator extends GoalEvaluator<any> {
    * @param {Enemy} owner - The owner of this goal evaluator.
    * @return {Number} The desirability.
    */
-  calculateDesirability(owner) {
+  calculateDesirability(owner: Vehicle) {
     let desirability = 0;
 
     //if ( owner.isItemIgnored( this.itemType ) === false ) {
@@ -44,9 +46,10 @@ class GetWeaponEvaluator extends GoalEvaluator<any> {
     const healthScore = Feature.health(owner);
 
     desirability =
-      (this.tweaker * (1 - weaponScore) * healthScore) / distanceScore;
+      (this.tweaker * (1 - weaponScore) * healthScore) / distanceScore.score;
 
     desirability = MathUtils.clamp(desirability, 0, 1);
+    this.item = distanceScore.result as GameEntity;
 
     //}
 
@@ -58,15 +61,15 @@ class GetWeaponEvaluator extends GoalEvaluator<any> {
    *
    * @param {Enemy} owner - The owner of this goal evaluator.
    */
-  setGoal(owner) {
-    const brain = owner.entity.read("BrainComponent").object;
+  setGoal(owner: Vehicle) {
+    const brain = owner.components.read(componentRegistry.BrainComponent).object;
 
     const currentSubgoal = brain.currentSubgoal();
 
     if (currentSubgoal instanceof GetItemGoal === false) {
       brain.clearSubgoals();
 
-      brain.addSubgoal(new GetItemGoal(owner, this.itemType));
+      brain.addSubgoal(new GetItemGoal(owner, this.itemType, this.item));
     }
   }
 }

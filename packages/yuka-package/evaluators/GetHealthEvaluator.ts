@@ -29,6 +29,7 @@ import { componentRegistry } from "../entities/Components";
 class GetHealthEvaluator extends GoalEvaluator<Vehicle> {
   private itemType: any;
   private tweaker: number;
+  private item?: GameEntity;
 
   /**
    * Constructs a new get health goal evaluator.
@@ -84,7 +85,9 @@ class GetHealthEvaluator extends GoalEvaluator<Vehicle> {
       const distanceScore = Feature.distanceToItem(owner, this.itemType);
       const healthScore = Feature.health(owner);
 
-      desirability = (this.tweaker * (1 - healthScore)) / distanceScore;
+      desirability = (this.tweaker * (1 - healthScore)) / distanceScore.score;
+
+      this.item = distanceScore.result as GameEntity;
 
       desirability = MathUtils.clamp(desirability, 0, 1);
     }
@@ -107,7 +110,7 @@ class GetHealthEvaluator extends GoalEvaluator<Vehicle> {
     if (currentSubgoal instanceof GetItemGoal === false) {
       brain.clearSubgoals();
 
-      brain.addSubgoal(new GetItemGoal(owner, this.itemType));
+      brain.addSubgoal(new GetItemGoal(owner, this.itemType, this.item));
     }
   }
 }

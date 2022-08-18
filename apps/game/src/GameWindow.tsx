@@ -9,7 +9,9 @@ import {
     Target,
     MovingEntity,
     Packed,
-    State
+    State,
+    PositionComponent,
+    Weapon,
 } from "becsy-package";
 import {EntityListPanel, EntityPanel, GameWorldWrapper, RenderContext, GameWorldContext} from "becsy-ui";
 import {System, Entity, World} from "@lastolivegames/becsy";
@@ -146,9 +148,9 @@ export const GameWindow = ({id}: { id: any }) => {
         })
     }
 
-    useEffect(() => {
-        console.log(frame)
-    }, [frame]);
+    // useEffect(() => {
+    //     console.log(frame)
+    // }, [frame]);
 
     // render() {
     return (
@@ -218,6 +220,22 @@ const GameCanvas = () => {
     const [debug, setDebug] = useState(false);
     const [orbit, setOrbit] = useState(true);
 
+    const goTo = (event: ThreeEvent<MouseEvent>) => {
+        if (player?.player?.has(Target)) {
+
+            world?.enqueueAction((sys, e, data: { position: { x: number, y: number, z: number } }) => {
+                const selected = e?.read(Target).value as Entity;
+                if (!selected?.has(Target)) {
+                    const target = sys.createEntity(PositionComponent, {
+                        position: data.position,
+                    });
+                    selected?.add(Target, {value: target});
+                }
+            }, player.player, {position: event.point.toArray()});
+
+        }
+    }
+
     return <Canvas>
         <FrameContext.Provider value={frame}>
             <GameWorldContext.Provider value={world}>
@@ -231,7 +249,7 @@ const GameCanvas = () => {
 
                             <RigidBody lockRotations={true} lockTranslations={true}>
                                 <Box
-                                    // onClick={(e) => this.goTo(e)}
+                                    onClick={(e) => goTo(e)}
                                     args={[100, 1, 100]}
                                     position={[0, -1, 0]}
                                 >
@@ -338,6 +356,14 @@ const EntityRenderList = (/*{render, world}: { render: Render, world: GameWorld 
                         />
                     );
                 }
+                if (child.has(Weapon)) {
+                    ret = (
+                        <Rifle
+                            key={child.__id}
+                            entity={child}
+                            onClick={() => select(child)}
+                        />)
+                }
                 if (ret !== null) {
                     // child.add(Object3DComponent, ret.ref)
                 }
@@ -376,7 +402,7 @@ const Toolbar = () => {
                 );
                 break;
             case "gun":
-                world?.enqueueAction((sys) => sys.createEntity(Collectable));
+                world?.enqueueAction((sys) => sys.createEntity(Collectable, Weapon, StaticEntityComponent));
                 break;
         }
 
@@ -440,24 +466,35 @@ const Toolbar = () => {
     </div>
 }
 
+
 const Robot = (props: { entity: Entity; onClick: any; position?: any }) => {
     const bodyRef = useRef<RigidBodyApi>(null);
     const boxRef = useRef<THREE.Mesh>(null);
     const vehicle = props.entity.read(GameEntityComponent).entity as Vehicle;
+    const vehiclePos = new THREE.Vector3()
+    const vehicleRot = new THREE.Quaternion()
+    const vehicleVel = new THREE.Vector3()
+
 
     const dummyRef = useRef<{ setSelectedAction: any } | null>();
 
     useFrame(() => {
-        const vehiclePos = Vector3YukaToThree(vehicle.position);
-        const vehicleRot = QuaternionYukaToThree(vehicle.rotation);
+        const positionComponent = props.entity.read(PositionComponent);
+        const movingEntityComponent = props.entity.read(MovingEntity);
+        // const vehiclePos = Vector3YukaToThree(vehicle.position);
+        // const vehicleRot = QuaternionYukaToThree(vehicle.rotation);
+        vehiclePos.set(positionComponent.position.x, positionComponent.position.y, positionComponent.position.z);
+        vehicleRot.set(positionComponent.rotation.x, positionComponent.rotation.y, positionComponent.rotation.z, positionComponent.rotation.w);
 
+
+        vehicleVel.set(movingEntityComponent.velocity.x, movingEntityComponent.velocity.y, movingEntityComponent.velocity.z);
         boxRef.current?.position.copy(vehiclePos);
         boxRef.current?.quaternion.copy(vehicleRot);
 
         if (!bodyRef.current) return;
 
         const currentVel = bodyRef.current.linvel();
-        const vehicleVel = vehicle.velocity;
+        // const vehicleVel = vehicle.velocity;
         const angle = bodyRef.current.rotation().angleTo(vehicleRot);
 
         bodyRef.current?.setLinvel({
@@ -467,14 +504,14 @@ const Robot = (props: { entity: Entity; onClick: any; position?: any }) => {
         });
         bodyRef.current?.setAngvel({x: 0, y: angle, z: 0})
 
-        vehicle.position.copy(Vector3ThreeToYuka(bodyRef.current.translation()));
-        vehicle.rotation.copy(QuaternionThreeToYuka(bodyRef.current.rotation()));
+        // vehicle.position.copy(Vector3ThreeToYuka(bodyRef.current.translation()));
+        // vehicle.rotation.copy(QuaternionThreeToYuka(bodyRef.current.rotation()));
 
         const speed = currentVel.length()
         const maxSpeed = vehicle.maxSpeed;
 
-        if (vehicle.components.has(State)) {
-            const v = vehicle.components.read(State).value;
+        if (props.entity.has(State)) {
+            const v = props.entity.read(State).value;
             dummyRef.current?.setSelectedAction(v);
         } else if (currentVel.y > 0.1 || currentVel.y < -0.001) {
             dummyRef.current?.setSelectedAction('Falling Idle');
@@ -490,6 +527,7 @@ const Robot = (props: { entity: Entity; onClick: any; position?: any }) => {
 
     return (
         <>
+
             <RigidBody
                 ref={bodyRef}
                 colliders={false}
@@ -503,6 +541,7 @@ const Robot = (props: { entity: Entity; onClick: any; position?: any }) => {
                 <BallCollider args={[0.5]} position={[0, 0, 0]}/>
                 <BallCollider args={[0.5]} position={[0, -1.2, 0]}/>
             </RigidBody>
+            <Box ref={boxRef} args={[1, 1, 1]} position={[0, 0, 0]} rotation={[0, 0, 0]}/>
         </>
     );
 };

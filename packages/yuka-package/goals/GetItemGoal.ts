@@ -36,7 +36,7 @@ const { Target } = componentRegistry;
  */
 class GetItemGoal extends CompositeGoal<Vehicle> {
   private itemType: any;
-  private item: any;
+  private item?: GameEntity|null;
   private regulator: Regulator;
 
   /**
@@ -46,7 +46,7 @@ class GetItemGoal extends CompositeGoal<Vehicle> {
    * @param itemType - The type of the item.
    * @param item - The exact item to get.
    */
-  constructor(owner: Vehicle, itemType: any, item = null) {
+  constructor(owner: Vehicle, itemType: any, item: any = null) {
     // _.defaultsDeep(owner, {data: {GetItemGoal: {}}})
     super(owner);
 

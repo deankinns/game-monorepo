@@ -62,7 +62,7 @@ export class Feature {
 
   static distanceToItem(enemy: Vehicle, itemType: any) {
     let score = Infinity;
-    let result = null;
+    let result: GameEntity|null = null;
 
     let minDist = Infinity;
     const manager = enemy.manager as EntityManager;
@@ -97,7 +97,7 @@ export class Feature {
       score = distance / CONFIG.BOT.MAX_ITEM_RANGE;
     }
 
-    return score;
+    return {score, result};
   }
 
   static individualWeaponStrength(enemy: Vehicle, weaponType: any) {

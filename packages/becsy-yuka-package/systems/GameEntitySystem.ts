@@ -11,7 +11,7 @@ import {
     EventSystem,
     MovingEntity as MovingComponent,
     PositionComponent,
-    Deleter,
+    Deleter, State,
 } from "becsy-package";
 import {GameEntity, MovingEntity, Vehicle} from "yuka-package";
 import {EntityManagerComponent} from "../components/EntityManagerComponent";
@@ -77,7 +77,7 @@ export class EntityManagerSystem extends System {
     );
     entities = this.query(
         (q) =>
-            q.using(PositionComponent).write.with(GameEntityComponent).added.current
+            q.using(PositionComponent, State).write.with(GameEntityComponent).added.current
                 .removed.write
     );
 
@@ -146,15 +146,32 @@ export class EntityManagerSystem extends System {
             entity.add(GameEntityComponent, {entity: gameEntity});
         }
 
-        this.entityManager.update(this.delta / this.timeMultiplier);
+        // this.entityManager.update(this.delta / this.timeMultiplier);
 
-        // for (const entity of this.entities.current) {
-        //     const gameEntity = entity.read(GameEntityComponent).entity;
-        //     if (gameEntity) {
-        //         gameEntity.components.hold()
-        //         this.entityManager.updateEntity(gameEntity, this.delta / 1000)
-        //     }
-        // }
+        for (const entity of this.entities.current) {
+            const gameEntity = entity.read(GameEntityComponent).entity;
+            if (gameEntity) {
+                // gameEntity.components.hold()
+                this.entityManager.updateEntity(gameEntity, this.delta / this.timeMultiplier)
+
+                const position = entity.write(PositionComponent);
+                position.position.x = gameEntity.position.x;
+                position.position.y = gameEntity.position.y;
+                position.position.z = gameEntity.position.z;
+
+                position.rotation.x = gameEntity.rotation.x;
+                position.rotation.y = gameEntity.rotation.y;
+                position.rotation.z = gameEntity.rotation.z;
+                position.rotation.w = gameEntity.rotation.w;
+
+                if (entity.has(MovingComponent) && gameEntity instanceof Vehicle){
+                    const moving = entity.write(MovingComponent);
+                    moving.velocity.x = gameEntity.velocity.x;
+                    moving.velocity.y = gameEntity.velocity.y;
+                    moving.velocity.z = gameEntity.velocity.z;
+                }
+            }
+        }
 
         this.accessRecentlyDeletedData(true);
 
@@ -165,7 +182,7 @@ export class EntityManagerSystem extends System {
             }
         }
 
-        // this.processTriggers();
+        this.processTriggers();
     }
 }
 

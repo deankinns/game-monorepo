@@ -20,12 +20,16 @@ export const v3Type = Type.vector(Type.float64, ["x", "y", "z"], Vector3);
 
 @component
 export class PositionComponent {
-  @field(v3Type) declare position: Vector3;
-  @field(v3Type) declare rotation: Vector3;
+  @field.float64.vector(['x', 'y', 'z'])
+  declare position: [number, number, number] & {x: number, y: number, z: number};
+  @field.float64.vector(['x', 'y', 'z', 'w'])
+  declare rotation: [number, number, number, number] & {x: number, y: number, z: number, w: number};
 }
 
 @component
 export class MovingEntity {
-  @field(v3Type) declare velocity: Vector3;
-  @field(v3Type) declare angularVelocity: Vector3;
+  @field.float64.vector(['x', 'y', 'z'])
+  declare velocity:  [number, number, number] & {x: number, y: number, z: number};
+  @field.float64.vector(['x', 'y', 'z'])
+  declare angularVelocity: [number, number, number] & {x: number, y: number, z: number};
 }
