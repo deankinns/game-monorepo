@@ -21,7 +21,7 @@ import {
     InventorySystem,
     State
 } from "becsy-package";
-import {GetHealthEvaluator} from "yuka-package";
+import {GetHealthEvaluator, ExploreEvaluator} from "yuka-package";
 import {
     EntityManagerSystem,
     GameEntityComponent,
@@ -53,7 +53,9 @@ export class ThinkSystem extends System {
     execute() {
         for (const entity of this.thinkers.added) {
             const gameEntity = entity.read(GameEntityComponent);
-            entity.write(BrainComponent).object = new Think(gameEntity.entity);
+            const think = new Think(gameEntity.entity);
+            think.addEvaluator(new ExploreEvaluator())
+            entity.write(BrainComponent).object = think
             entity.write(BrainComponent).regulator = new Regulator(1);
         }
 

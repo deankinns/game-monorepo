@@ -32,6 +32,7 @@ import {
     Collectable,
     Inventory,
     Target,
+    State,
     Packed,
 } from "becsy-package";
 import {useContext, useEffect, useRef, useState} from "react";
@@ -45,6 +46,7 @@ componentRegistry.Target = Target;
 componentRegistry.PathRequestComponent = PathRequestComponent;
 componentRegistry.PathComponent = PathComponent;
 componentRegistry.MemoryComponent = MemoryComponent;
+componentRegistry.State = State;
 
 // export class GameWindow extends React.Component<any, any> {
 
@@ -155,5 +157,6 @@ export const Toolbar = () => {
     return <div className={"toolbar"}>
         <button onClick={() => addEntity("player")}>Player</button>
         <button onClick={() => addEntity("health")}>Health Pack</button>
+        <button onClick={() => addEntity("gun")}>Gun</button>
     </div>
 }

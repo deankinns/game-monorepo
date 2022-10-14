@@ -1,5 +1,5 @@
 import {Entity, System, World} from "@lastolivegames/becsy";
-import "./systems";
+// import "./systems";
 import {EventSystem} from "./systems";
 
 declare global {

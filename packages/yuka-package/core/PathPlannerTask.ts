@@ -23,7 +23,7 @@ class PathPlannerTask extends Task {
    * @param {Vector3} to - The target point of the path.
    * @param {Function} callback - The callback which is called after the task is finished.
    */
-  constructor(planner, vehicle, from, to, callback) {
+  constructor(planner: PathPlanner, vehicle: Vehicle, from: Vector3, to: Vector3, callback: Function) {
     super();
 
     this.callback = callback;

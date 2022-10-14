@@ -1,71 +1,57 @@
-import React, {useRef, Suspense, useContext, useEffect, useState} from "react";
+import React, {Suspense, useContext, useEffect, useRef, useState} from "react";
 import {
-    GameWorld,
-    Render,
-    Health,
-    Healing,
     Collectable,
-    Inventory,
-    Target,
-    MovingEntity,
+    GameWorld,
+    Healing,
+    Health,
     Packed,
-    State,
     PositionComponent,
-    Weapon,
+    Render,
+    Selected,
+    State,
+    Target,
+    ToBeDeleted,
+    Weapon
 } from "becsy-package";
-import {EntityListPanel, EntityPanel, GameWorldWrapper, RenderContext, GameWorldContext} from "becsy-ui";
-import {System, Entity, World} from "@lastolivegames/becsy";
+import {EntityListPanel, EntityPanel, GameWorldContext, RenderContext} from "becsy-ui";
+import {Entity, System, World} from "@lastolivegames/becsy";
 
 import "becsy-package/systems";
 import "becsy-yuka-package/systems";
 
 import {
-    VehicleEntityComponent,
-    GameEntityComponent,
-    StaticEntityComponent,
     BrainComponent,
+    EntityManagerSystem,
     MemoryComponent,
-    VisionComponent,
-    PathRequestComponent,
-    PathComponent,
     NavMeshComponent,
-    EntityManagerSystem
+    PathComponent,
+    PathRequestComponent,
+    VehicleEntityComponent
 } from "becsy-yuka-package";
 
-import {Dummy} from "fiber-package";
-import {TreeView} from "enable3d-ui";
+import {EntityList, EntityManagerWrapper} from "yuka-ui";
 
-import {EntityManagerContext, EntityManagerWrapper, EntityList} from "yuka-ui";
-
-import {EntityManager, NavMesh, Polygon, Vector3, Quaternion} from "yuka";
+import {EntityManager, NavMesh, Polygon, Vector3} from "yuka";
 import Stats from "three/examples/jsm/libs/stats.module";
-import {Canvas, ThreeEvent, useFrame, useThree} from "@react-three/fiber";
-import {
-    OrbitControls,
-    FlyControls,
-    Sky,
-    Stars,
-    FirstPersonControls,
-    PointerLockControls,
-    Box,
-} from "@react-three/drei";
+import {Canvas, ThreeEvent, useFrame} from "@react-three/fiber";
+import {Box, OrbitControls, Sky,} from "@react-three/drei";
 
-import {
-    Physics,
-    RigidBody,
-    Debug,
-    BallCollider,
-    RigidBodyApi,
-} from "@react-three/rapier";
+import {Debug, Physics, RigidBody,} from "@react-three/rapier";
 
-import {componentRegistry, Vehicle} from "yuka-package";
+import {componentRegistry,} from "yuka-package";
+
+import {createConvexRegionHelper} from "three-yuka-package";
 
 import * as THREE from "three";
+import {Vector3ToThree} from "three-package"
 
-const stats = Stats();
-stats.dom.style.cssText =
-    "position:absolute;bottom:0;left:0;cursor:pointer;opacity:0.9;z-index:10000";
-document.body.appendChild(stats.dom);
+import {HealthPack, Robot, PlayerContext} from 'becsy-fiber';
+import {Rifle} from "./Rifle";
+import {FirstPersonControls} from "becsy-fiber";
+import {Toolbar} from "./Toolbar";
+
+
+import {TerrainChunkManager} from "terrain-generator-package";
 
 componentRegistry.Health = Health;
 componentRegistry.Packed = Packed;
@@ -77,171 +63,226 @@ componentRegistry.PathRequestComponent = PathRequestComponent;
 componentRegistry.PathComponent = PathComponent;
 componentRegistry.MemoryComponent = MemoryComponent;
 componentRegistry.State = State;
+componentRegistry.Weapon = Weapon;
+componentRegistry.Position = PositionComponent;
 
-const PlayerContext = React.createContext<{ player: Entity | undefined, setPlayer: any }>({
-    player: undefined,
-    setPlayer: () => {
-    }
-});
-const FrameContext = React.createContext<{ frame: number, setFrame: any }>({frame: 0, setFrame: null});
+// export const PlayerContext = React.createContext<{ player: Entity | undefined, setPlayer: any }>(null!);
+export const FrameContext = React.createContext<{ frame: number, setFrame: any }>({frame: 0, setFrame: null});
+export const NavMeshContext = React.createContext<{ navMesh: NavMesh | undefined, setNavMesh: any }>(null!);
+
+type GameContext = {
+    player: Entity,
+    setPlayer: any,
+    render: Render,
+    setRender: any,
+    world: GameWorld,
+    setWorld: any,
+}
+
+// const GameContext = React.createContext<GameContext>(null!);
+
+// const thing = React.createRef<GameWorld>()
 
 
 export const GameWindow = ({id}: { id: any }) => {
 
-    const [player, setPlayer] = React.useState<Entity | undefined>(undefined);
+
+    const [player, setPlayer] = React.useState<Entity>(null!);
+    const [navMesh, setNavMesh] = React.useState<NavMesh>(null!);
 
     const [show, setShow] = React.useState(true);
-    // const [scene, setScene] = React.useState(false);
-
     const [frame, setFrame] = React.useState(0);
-    const select = (target: Entity) => {
-        if (player?.has(Target)) {
-            player?.remove(Target);
-        }
-        player?.add(Target, {value: target});
-        // setState({frame: this.state.frame + 1});
-    }
 
-    // goTo(event: ThreeEvent<MouseEvent>) {
-    //     if (this.player?.has(Target)) {
-    //         const selected = this.player?.read(Target).value as Entity;
-    //         this.enqueueAction((sys) => {
-    //             if (!selected.has(Target)) {
-    //                 const target = sys.createEntity(MovingEntity, {
-    //                     position: event.point.toArray(),
-    //                 });
-    //                 selected.add(Target, {value: target});
-    //             }
-    //         }, selected);
-    //     }
-    // }
-
-    // setInterval(() => {
-    //     setFrame(frame + 1);
-    // }  , 1000);
 
     const [debug, setDebug] = React.useState(false);
     const [orbit, setOrbit] = React.useState(true);
 
-    const [entityManager, setEntityManager] = useState<EntityManager | undefined>(undefined);
-    const managerRef = useRef<EntityManager | undefined>(undefined);
-    const worldRef = useRef<GameWorld | null>(null);
+    const [entityManager, setEntityManager] = useState<EntityManager>(null!);
+    const managerRef = useRef<EntityManager>(null!);
+    const [render, setRender] = React.useState<Render>(null!);
+    const renderRef = useRef<Render>(null!);
+    const worldRef = useRef<GameWorld>(new GameWorld());
 
-    // const scene = useRef<THREE.Scene | undefined>(undefined);
+    const [world, setWorld] = React.useState<GameWorld>(null!);
 
-    const cb = (world: World) => {
-        setEntityManager(managerRef.current);
+    useEffect(() => {
+        worldRef.current.makeWorld([
+            Render, {reference: renderRef},
+            EntityManagerSystem, {reference: managerRef, timeMultiplier: 1}
+        ]).then((world: World) => {
+            setEntityManager(managerRef.current);
 
-        world.build((s) => {
-            const nav = new NavMesh();
-            nav.fromPolygons([
-                new Polygon().fromContour([
-                    new Vector3(0, 0, 0),
-                    new Vector3(0, 0, 100),
-                    new Vector3(100, 0, 100),
-                    new Vector3(100, 0, 0),
-                ]),
-            ]);
-            s.createEntity(NavMeshComponent, {navMesh: nav});
-            setFrame(s.time);
-            setPlayer(s.createEntity().hold());
+            world.build((s) => {
+                setPlayer(s.createEntity().hold());
+                const nav = new NavMesh();
+                nav.fromPolygons([
+                    new Polygon().fromContour([
+                        new Vector3(-50, 0, -50),
+                        new Vector3(-50, 0, 50),
+                        new Vector3(50, 0, 50),
+                        new Vector3(50, 0, -50),
+                    ]),
+                ]);
+                setNavMesh(nav);
+                s.createEntity(NavMeshComponent, {navMesh: nav});
+                setFrame(s.time);
+                setRender(renderRef.current)
+                setWorld(worldRef.current);
+            })
         })
-    }
+    }, [])
 
-    // useEffect(() => {
-    //     console.log(frame)
-    // }, [frame]);
-
-    // render() {
     return (
+        <GameWorldContext.Provider value={world}>
+            <RenderContext.Provider value={render}>
+                <FrameContext.Provider value={{frame, setFrame}}>
+                    <PlayerContext.Provider value={{player, setPlayer}}>
 
-        <GameWorldWrapper
-            ref={worldRef}
-            defs={[EntityManagerSystem, {reference: managerRef, timeMultiplier: 1}]}
-            buildCallback={cb}
-        >
-            <FrameContext.Provider value={{frame, setFrame}}>
-                <PlayerContext.Provider value={{player, setPlayer}}>
-
-                    <div className={"w3-display-container"}>
-                        <div id={`gameWindow${id}`}>
-                            <GameCanvas/>
-                        </div>
-                        {/*<Tree scene={scene.current}/>*/}
-                        <Suspense fallback={null}><Toolbar/></Suspense>
-                        {player?.has(Target) ? (
+                        <div className={"w3-display-container"}>
+                            <div id={`gameWindow${id}`}>
+                                <NavMeshContext.Provider value={{navMesh, setNavMesh}}>
+                                    <GameCanvas debug={debug} orbit={orbit}/>
+                                </NavMeshContext.Provider>
+                            </div>
+                            {/*<Tree scene={scene.current}/>*/}
+                            {/*<Suspense fallback={null}>*/}
+                            <Toolbar
+                                actions={[
+                                    {name: 'Debug', action: () => setDebug(!debug)},
+                                    {name: orbit ? 'Orbit' : 'First Person', action: () => setOrbit(!orbit)},
+                                ]}/>
+                            {/*</Suspense>*/}
+                            {player?.has(Target) ? (
+                                <div
+                                    style={{
+                                        position: "absolute",
+                                        bottom: 0,
+                                        maxHeight: "100vh",
+                                        overflow: "auto",
+                                    }}
+                                >
+                                    <EntityPanel
+                                        entity={player.read(Target).value}
+                                    />
+                                </div>
+                            ) : null}
                             <div
+                                className={"w3-container w3-light-grey"}
                                 style={{
+                                    top: 0,
+                                    right: 0,
                                     position: "absolute",
-                                    bottom: 0,
-                                    maxHeight: "100vh",
+                                    height: "100vh",
                                     overflow: "auto",
                                 }}
                             >
-                                <EntityPanel
-                                    entity={player.read(Target).value}
-                                />
+                                <button onClick={() => setShow(!show)}>
+                                    {show ? ">>" : "<<"}
+                                </button>
+                                {show ? <EntityListPanel/> : null}
                             </div>
-                        ) : null}
-                        <div
-                            className={"w3-container w3-light-grey"}
-                            style={{
-                                top: 0,
-                                right: 0,
-                                position: "absolute",
-                                height: "100vh",
-                                overflow: "auto",
-                            }}
-                        >
-                            <button onClick={() => setShow(!show)}>
-                                {show ? ">>" : "<<"}
-                            </button>
-                            {show ? <EntityListPanel/> : null}
                         </div>
-                    </div>
-                </PlayerContext.Provider>
-                <EntityManagerWrapper manager={entityManager}>
-                    <EntityList/>
-                </EntityManagerWrapper>
-            </FrameContext.Provider>
-        </GameWorldWrapper>
-
+                    </PlayerContext.Provider>
+                    <EntityManagerWrapper manager={entityManager}>
+                        <EntityList/>
+                    </EntityManagerWrapper>
+                </FrameContext.Provider>
+            </RenderContext.Provider>
+        </GameWorldContext.Provider>
     );
     // }
 }
 
-const GameCanvas = () => {
+const GameCanvas = ({debug, orbit}: { debug: boolean, orbit: boolean }) => {
+
+    // const {world, player, render} = useContext(GameContext);
 
     const world = useContext(GameWorldContext)
     const render = useContext(RenderContext)
     const player = useContext(PlayerContext);
     const frame = useContext(FrameContext);
 
-    const [debug, setDebug] = useState(false);
-    const [orbit, setOrbit] = useState(true);
+    const navMesh = useContext(NavMeshContext);
+
+    // const [debug, setDebug] = useState(false);
+    // const [orbit, setOrbit] = useState(true);
 
     const goTo = (event: ThreeEvent<MouseEvent>) => {
-        if (player?.player?.has(Target)) {
+        if (player.player?.has(Target)) {
 
-            world?.enqueueAction((sys, e, data: { position: { x: number, y: number, z: number } }) => {
+            world?.enqueueAction((sys, e, data: { position: { x: number, y: number, z: number }&[number, number, number] }) => {
                 const selected = e?.read(Target).value as Entity;
+                // console.log(selected.read(Selected));
+
                 if (!selected?.has(Target)) {
                     const target = sys.createEntity(PositionComponent, {
-                        position: data.position,
-                    });
+                        position: data.position
+                    }, Selected, ToBeDeleted, {condition: (entity: Entity) => {
+                        const sel = entity.read(Selected).by;
+                        for (const by of sel) {
+                            const byPos = Vector3ToThree(by.read(PositionComponent).position, new THREE.Vector3());
+                            const ePos = Vector3ToThree(entity.read(PositionComponent).position, new THREE.Vector3());
+                            // console.log(byPos.distanceTo(ePos));
+                            if (byPos.distanceTo(ePos) < 10) {
+                                by.remove(Target)
+                            }
+                        }
+
+                        return sel.length < 1;
+                    }});
                     selected?.add(Target, {value: target});
+                } else {
+                    const target = selected.read(Target).value;
+                    target.write(PositionComponent).position = data.position;
                 }
             }, player.player, {position: event.point.toArray()});
 
         }
     }
 
-    return <Canvas>
+    const deselect = (event: ThreeEvent<MouseEvent>) => {
+        if (player.player?.has(Target)) {
+            player.player?.remove(Target)
+        }
+    }
+
+    const helper = useRef<THREE.Object3D>(null!);
+    const scene = useRef<THREE.Scene | undefined>(undefined);
+    useEffect(() => {
+        if (navMesh.navMesh) {
+            scene.current?.remove(helper.current);
+
+            console.log('update')
+            helper.current = createConvexRegionHelper(navMesh.navMesh);
+            scene.current?.add(helper.current);
+        }
+
+    }, [world, render, player])
+    // const foo = ({children}) => <>{children}</>
+
+    const firstPersonRef = useRef<any>(null!);
+
+    // useFrame(() => {
+    //     if (player.player?.has(Target)) {
+    //         const position = player.player.read(Target).value.read(PositionComponent).position;
+    //
+    //         firstPersonRef.current?.position.set(position.x, position.y, position.z);
+    //     }
+    //
+    //
+    // })
+
+
+    return <Canvas
+        onCreated={state => scene.current = state.scene}
+        camera={{ near: .1, far: 100000}}
+    >
         <FrameContext.Provider value={frame}>
             <GameWorldContext.Provider value={world}>
+                <FrameCount/>
                 <RenderContext.Provider value={render}>
                     <PlayerContext.Provider value={player}>
-                        <FrameCount/>
+
                         <Physics>
                             {debug ? <Debug/> : null}
 
@@ -249,13 +290,17 @@ const GameCanvas = () => {
 
                             <RigidBody lockRotations={true} lockTranslations={true}>
                                 <Box
-                                    onClick={(e) => goTo(e)}
+                                    onClick={(e) => deselect(e)}
+                                    onContextMenu={(e) => goTo(e)}
                                     args={[100, 1, 100]}
                                     position={[0, -1, 0]}
                                 >
                                     <meshStandardMaterial color={"green"}/>
                                 </Box>
                             </RigidBody>
+
+                            <TerrainChunkManager />
+
                         </Physics>
                     </PlayerContext.Provider>
                 </RenderContext.Provider>
@@ -263,52 +308,55 @@ const GameCanvas = () => {
         </FrameContext.Provider>
         <Suspense>
             <Sky/>
-            {orbit ? <OrbitControls/> : <PointerLockControls/>}
+            <PlayerContext.Provider value={player}>
+                <Controls orbit={orbit}/>
+            </PlayerContext.Provider>
             <ambientLight intensity={0.1}/>
             <directionalLight position={[0, 0, 5]} color="teal"/>
         </Suspense>
     </Canvas>
 }
 
-const Tree = ({scene}: { scene: THREE.Scene }) => {
-    // let {scene} = useThree();
-    // const scene = useRef<any | null>(null)// const scene = useThree()?.scene;
-    //
-    // useFrame((state, delta, frame) => {
-    //     scene.current = state.scene;
-    // })
+const Controls = ({orbit}: { orbit: boolean }) => {
 
-    useEffect(() => {
-
-    }, [scene])
-
-    return <Suspense fallback={null}><TreeView scene={scene}/></Suspense>;
+    return orbit ? <OrbitControls/> : <FirstPersonControls/>
 }
 
-const EntityRenderList = (/*{render, world}: { render: Render, world: GameWorld }*/) => {
-    // const [frame, setFrame] = useState<number>(0)
+//
+// const Tree = ({scene}: { scene: THREE.Scene }) => {
+//     // let {scene} = useThree();
+//     // const scene = useRef<any | null>(null)// const scene = useThree()?.scene;
+//     //
+//     // useFrame((state, delta, frame) => {
+//     //     scene.current = state.scene;
+//     // })
+//
+//     useEffect(() => {
+//
+//     }, [scene])
+//
+//     return <Suspense fallback={null}><TreeView scene={scene}/></Suspense>;
+// }
+
+export const EntityRenderList = () => {
+
     const render = useContext(RenderContext);
     const world = useContext(GameWorldContext);
+    const player = useContext(PlayerContext);
 
     const {frame, setFrame} = useContext(FrameContext);
 
-    const {player} = useContext(PlayerContext);
-    // const manager = useContext(EntityManagerContext);
-
-    // useFrame((state, delta, frame) => {
-    //     setFrame(frame);
-    // })
-    //
     const select = (e: Entity) => {
-        world?.enqueueAction((sys, entity) => {
-            if (player?.has(Target)) {
-                player?.remove(Target);
+        world?.enqueueAction((sys, entity, data) => {
+            if (data?.player?.has(Target)) {
+                data?.player?.remove(Target);
             }
-            player?.add(Target, {value: entity});
-            // setFrame(sys.time)
-            // frame.set(sys.time);
+            if (!entity?.has(Selected)) {
+                entity?.add(Selected);
+            }
+            data?.player?.add(Target, {value: entity});
             setFrame(sys.time);
-        }, e)
+        }, e, {player: player?.player});
     };
 
     useEffect(() => {
@@ -342,7 +390,10 @@ const EntityRenderList = (/*{render, world}: { render: Render, world: GameWorld 
                             key={child.__id}
                             entity={child}
                             // position={[Math.random() * 100 - 50, 5, Math.random() * 100 - 50]}
-                            onClick={() => select(child)}
+                            onClick={() => {
+                                select(child);
+                                console.log('click')}
+                            }
                         />
                     );
                 }
@@ -375,244 +426,23 @@ const EntityRenderList = (/*{render, world}: { render: Render, world: GameWorld 
     </>
 }
 
-const Toolbar = () => {
+export const FrameCount = () => {
 
-    const world = useContext(GameWorldContext);
-    const player = useContext(PlayerContext);
+    const stats = useRef<Stats>(null!);
 
-    const addEntity = (type: string) => {
-        // console.log('hello')
+    useEffect(() => {
+        stats.current = Stats()
+        stats.current.dom.style.cssText =
+            "position:absolute;bottom:0;left:0;cursor:pointer;opacity:0.9;z-index:10000";
+        document.body.appendChild(stats.current.dom);
+    }, [])
 
-        switch (type) {
-            case "player":
-                world?.enqueueAction((sys) =>
-                    sys.createEntity(
-                        Health,
-                        VehicleEntityComponent,
-                        Inventory,
-                        BrainComponent,
-                        VisionComponent,
-                        MemoryComponent
-                    )
-                );
-                break;
-            case "health":
-                world?.enqueueAction((sys) =>
-                    sys.createEntity(Healing, Collectable, StaticEntityComponent)
-                );
-                break;
-            case "gun":
-                world?.enqueueAction((sys) => sys.createEntity(Collectable, Weapon, StaticEntityComponent));
-                break;
-        }
-
-    }
-    //
-    // useEffect(() => {
-    //     console.log(world)
-    // }, [world])
-
-    return <div
-        className={"w3-bar w3-black"}
-        style={{top: 0, position: "absolute", display: "flex"}}
-    >
-        <button
-            className={"w3-bar-item w3-button"}
-            onClick={() => addEntity("player")}
-        >
-            Add Player
-        </button>
-        <button
-            className={"w3-bar-item w3-button"}
-            onClick={() => addEntity("health")}
-        >
-            Add Health
-        </button>
-        <button
-            className={"w3-bar-item w3-button"}
-            onClick={() => addEntity("gun")}
-        >
-            Add Gun
-        </button>
-        {/*<button*/}
-        {/*    className={"w3-bar-item w3-button"}*/}
-        {/*    onClick={() => {*/}
-        {/*        this.setState({orbit: !this.state.orbit});*/}
-        {/*        if (this.state.orbit) {*/}
-        {/*            // document.getElementById('gameCanvas').requestPointerLock()*/}
-        {/*        }*/}
-        {/*    }}*/}
-        {/*>*/}
-        {/*    {this.state.orbit ? "orbit" : "first person"}*/}
-        {/*</button>*/}
-        {/*<button*/}
-        {/*    className={"w3-bar-item w3-button"}*/}
-        {/*    onClick={() => this.setState({debug: !this.state.debug})}*/}
-        {/*>*/}
-        {/*    debug*/}
-        {/*</button>*/}
-        {/*<button*/}
-        {/*    className={"w3-bar-item w3-button"}*/}
-        {/*    onClick={() => {*/}
-        {/*        if (this.player?.has(Target)) {*/}
-        {/*            this.player?.remove(Target);*/}
-        {/*        }*/}
-
-        {/*        this.setState({frame: this.world.world?.stats.frames});*/}
-        {/*    }}*/}
-        {/*>*/}
-        {/*    -*/}
-        {/*</button>*/}
-    </div>
-}
-
-
-const Robot = (props: { entity: Entity; onClick: any; position?: any }) => {
-    const bodyRef = useRef<RigidBodyApi>(null);
-    const boxRef = useRef<THREE.Mesh>(null);
-    const vehicle = props.entity.read(GameEntityComponent).entity as Vehicle;
-    const vehiclePos = new THREE.Vector3()
-    const vehicleRot = new THREE.Quaternion()
-    const vehicleVel = new THREE.Vector3()
-
-
-    const dummyRef = useRef<{ setSelectedAction: any } | null>();
-
-    useFrame(() => {
-        const positionComponent = props.entity.read(PositionComponent);
-        const movingEntityComponent = props.entity.read(MovingEntity);
-        // const vehiclePos = Vector3YukaToThree(vehicle.position);
-        // const vehicleRot = QuaternionYukaToThree(vehicle.rotation);
-        vehiclePos.set(positionComponent.position.x, positionComponent.position.y, positionComponent.position.z);
-        vehicleRot.set(positionComponent.rotation.x, positionComponent.rotation.y, positionComponent.rotation.z, positionComponent.rotation.w);
-
-
-        vehicleVel.set(movingEntityComponent.velocity.x, movingEntityComponent.velocity.y, movingEntityComponent.velocity.z);
-        boxRef.current?.position.copy(vehiclePos);
-        boxRef.current?.quaternion.copy(vehicleRot);
-
-        if (!bodyRef.current) return;
-
-        const currentVel = bodyRef.current.linvel();
-        // const vehicleVel = vehicle.velocity;
-        const angle = bodyRef.current.rotation().angleTo(vehicleRot);
-
-        bodyRef.current?.setLinvel({
-            x: vehicleVel.x,
-            y: currentVel.y,
-            z: vehicleVel.z,
-        });
-        bodyRef.current?.setAngvel({x: 0, y: angle, z: 0})
-
-        // vehicle.position.copy(Vector3ThreeToYuka(bodyRef.current.translation()));
-        // vehicle.rotation.copy(QuaternionThreeToYuka(bodyRef.current.rotation()));
-
-        const speed = currentVel.length()
-        const maxSpeed = vehicle.maxSpeed;
-
-        if (props.entity.has(State)) {
-            const v = props.entity.read(State).value;
-            dummyRef.current?.setSelectedAction(v);
-        } else if (currentVel.y > 0.1 || currentVel.y < -0.001) {
-            dummyRef.current?.setSelectedAction('Falling Idle');
-        } else if (speed > maxSpeed * .1) {
-            dummyRef.current?.setSelectedAction('Running');
-        } else if (speed > maxSpeed * .01) {
-            dummyRef.current?.setSelectedAction('Walking');
-        } else {
-            dummyRef.current?.setSelectedAction('LookingAround');
-        }
-
-    }, -1);
-
-    return (
-        <>
-
-            <RigidBody
-                ref={bodyRef}
-                colliders={false}
-                position={[vehicle.position.x, vehicle.position.y, vehicle.position.z]}
-                enabledRotations={[false, true, false]}
-            >
-                <Suspense fallback={null}>
-                    <Dummy ref={dummyRef} onClick={props.onClick}/>
-                </Suspense>
-                <BallCollider args={[0.5]} position={[0, 1.1, 0]}/>
-                <BallCollider args={[0.5]} position={[0, 0, 0]}/>
-                <BallCollider args={[0.5]} position={[0, -1.2, 0]}/>
-            </RigidBody>
-            <Box ref={boxRef} args={[1, 1, 1]} position={[0, 0, 0]} rotation={[0, 0, 0]}/>
-        </>
-    );
-};
-
-const HealthPack = (props: {
-    entity: Entity;
-    onClick: any;
-    position?: any;
-}) => {
-    const bodyRef = useRef<RigidBodyApi>(null);
-    const gameEntity = props.entity.read(GameEntityComponent).entity;
-
-    useFrame(() => {
-        if (bodyRef.current) {
-            gameEntity.position.copy(Vector3ThreeToYuka(bodyRef.current?.translation()));
-            gameEntity.rotation.copy(QuaternionThreeToYuka(bodyRef.current?.rotation()));
-        }
-    })
-
-    return <RigidBody
-        ref={bodyRef}
-        position={[
-            gameEntity.position.x,
-            gameEntity.position.y,
-            gameEntity.position.z,
-        ]}
-    >
-        <Box args={[1, 0.5, 0.8]} onClick={props.onClick}>
-            <meshStandardMaterial color={"orange"}/>
-        </Box>
-    </RigidBody>
-
-};
-
-const Rifle = (props: { entity: Entity; onClick: any; position?: any }) => {
-    const gameEntity = props.entity.read(GameEntityComponent).entity;
-
-    return <RigidBody
-        position={[
-            gameEntity.position.x,
-            gameEntity.position.y,
-            gameEntity.position.z,
-        ]}
-    >
-        <Box args={[0.1, 0.1, 0.8]} onClick={props.onClick}>
-            <meshStandardMaterial color={"orange"}/>
-        </Box>
-    </RigidBody>
-}
-
-const FrameCount = () => {
     const world = useContext(GameWorldContext);
     useFrame((state, delta) => {
-        stats.update();
+        stats.current.begin();
         world?.execute(state.clock.elapsedTime, delta);
+        stats.current.end();
     });
     return <></>;
 };
 
-const Vector3ThreeToYuka = (v: THREE.Vector3) => {
-    return new Vector3(v.x, v.y, v.z);
-}
-
-const Vector3YukaToThree = (v: Vector3) => {
-    return new THREE.Vector3(v.x, v.y, v.z);
-}
-
-const QuaternionThreeToYuka = (q: THREE.Quaternion) => {
-    return new Quaternion(q.x, q.y, q.z, q.w);
-}
-
-const QuaternionYukaToThree = (q: Quaternion) => {
-    return new THREE.Quaternion(q.x, q.y, q.z, q.w);
-}

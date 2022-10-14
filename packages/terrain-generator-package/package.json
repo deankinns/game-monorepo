@@ -1,0 +1,22 @@
+{
+  "name": "terrain-generator-package",
+  "version": "1.0.0",
+  "dependencies": {
+    "@react-three/drei": "^9.34.2",
+    "@react-three/fiber": "^8.8.9",
+    "@react-three/rapier": "^0.6.9",
+    "alea": "^1.0.1",
+    "leva": "^0.9.31",
+    "react": "^18.2.0",
+    "simplex-noise": "^4.0.0",
+    "three": "^0.145.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.21",
+    "eslint": "^8.5.0",
+    "eslint-config-custom": "*",
+    "leva": "^0.9.31",
+    "tsconfig": "*",
+    "typescript": "^4.8.4"
+  }
+}

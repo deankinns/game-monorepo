@@ -200,6 +200,9 @@ export class PickUpCollectibleGoal extends Goal<any> {
 
         if (owner.components.has(componentRegistry.Target)) {
             owner.components.remove(componentRegistry.Target);
+        }
+
+        if(owner.components.has(componentRegistry.State)) {
             owner.components.remove(componentRegistry.State);
         }
 

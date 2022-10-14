@@ -4,7 +4,7 @@ import "ui/w3.css"
 // import "../style/style.css";
 
 export default function Web() {
-     const ports = new Array(6).fill(0);
+     const ports = new Array(8).fill(0);
 
     return (
         <div>

@@ -111,6 +111,15 @@ class GetHealthEvaluator extends GoalEvaluator<Vehicle> {
       brain.clearSubgoals();
 
       brain.addSubgoal(new GetItemGoal(owner, this.itemType, this.item));
+    } else if(currentSubgoal?.item && this.item) {
+      if (currentSubgoal.item.position.distanceTo(owner.position) > this.item.position.distanceTo(
+        owner.position
+      ) && this.item !== currentSubgoal.item) {
+        brain.clearSubgoals();
+
+        brain.addSubgoal(new GetItemGoal(owner, this.itemType, this.item));
+      }
+
     }
   }
 }

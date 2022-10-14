@@ -16,6 +16,7 @@ import {
 import {GameEntity, MovingEntity, Vehicle} from "yuka-package";
 import {EntityManagerComponent} from "../components/EntityManagerComponent";
 import {ThinkSystem} from "./ThinkSystem";
+import {GameEntityWrapper} from "../entities/Vehicle";
 
 @component
 export class GameEntityComponent {
@@ -142,6 +143,8 @@ export class EntityManagerSystem extends System {
             gameEntity.position.set(x, y, z);
             gameEntity.boundingRadius = 10;
             this.entityManager.add(gameEntity);
+
+            // this.entityManager.add(GameEntityWrapper(entity));
             // entity.write(GameEntityComponent).entity = gameEntity
             entity.add(GameEntityComponent, {entity: gameEntity});
         }

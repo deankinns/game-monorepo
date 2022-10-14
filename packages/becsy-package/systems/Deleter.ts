@@ -8,6 +8,11 @@ export class Deleter extends System {
   entities = this.query((q) => q.current.with(ToBeDeleted).usingAll.write);
 
   execute() {
-    for (const entity of this.entities.current) entity.delete();
+    for (const entity of this.entities.current) {
+      const del = entity.read(ToBeDeleted);
+      if (!del.condition || del.condition(entity)) {
+        entity.delete();
+      }
+    }
   }
 }

@@ -5,11 +5,10 @@
   "types": "./index.ts",
   "type": "module",
   "dependencies": {
-    "@lastolivegames/becsy": "^0.14.2"
+    "@lastolivegames/becsy": "^0.14.3"
   },
   "devDependencies": {
-    "@types/yuka": "^0.7.1",
     "tsconfig": "*",
-    "typescript": "^4.5.2"
+    "typescript": "^4.8.4"
   }
 }
