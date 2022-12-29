@@ -38,9 +38,14 @@ export const FirstPersonControls = () => {
                 // vehicle.velocity.set(
                 //     dir.x, dir.y, dir.z
                 // );
+                const rot = new THREE.Quaternion();
+                state.camera.getWorldQuaternion(rot);
+
+                rot.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI))
+
                 Vector3ToYuka(dir, vehicle.velocity);
 
-                QuaternionToYuka(firstPersonRef.current.camera.getWorldQuaternion(new THREE.Quaternion()), vehicle.rotation);
+                QuaternionToYuka(rot, vehicle.rotation);
                 // vehicle.lookAt(forward)
                 // const position = vehicle.read(PositionComponent).position;
                 // firstPersonRef.current?.camera.position.set(position.x, position.y, position.z);

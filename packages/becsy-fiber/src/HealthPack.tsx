@@ -4,8 +4,8 @@ import {RigidBody, RigidBodyApi} from "@react-three/rapier";
 import {useFrame} from "@react-three/fiber";
 import {Box} from "@react-three/drei";
 
-import {GameEntityComponent} from '../../../node_modules/becsy-yuka-package';
-import {Vector3ToYuka, QuaternionToYuka} from '../../../node_modules/yuka-package'
+import {GameEntityComponent} from 'becsy-yuka-package';
+import {Vector3ToYuka, QuaternionToYuka} from 'yuka-package'
 
 
 export const HealthPack = (props: {
@@ -30,6 +30,7 @@ export const HealthPack = (props: {
             gameEntity.position.y,
             gameEntity.position.z,
         ]}
+        ccd={true}
     >
         <Box args={[1, 0.5, 0.8]} onClick={props.onClick}>
             <meshStandardMaterial color={"orange"}/>

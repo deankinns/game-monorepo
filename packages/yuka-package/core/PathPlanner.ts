@@ -5,10 +5,10 @@ import {
   NavNode,
   TaskQueue,
   Vector3,
-  Vehicle,
 } from "yuka";
 import { PathPlannerTask } from "./PathPlannerTask";
 import { CONFIG } from "./Config";
+import {Vehicle} from "../entities";
 
 /**
  * Class for asynchronous path finding using Yuka's task features.
@@ -69,11 +69,11 @@ class PathPlanner {
   ) {
     position.copy(direction).applyRotation(entity.rotation).normalize();
     position
-      .multiplyScalar(CONFIG.BOT.MOVEMENT.DODGE_SIZE)
+      .multiplyScalar(.5)
       .add(entity.position);
 
     const navMesh = this.navMesh;
-    const region = navMesh.getRegionForPoint(position, 1);
+    const region = navMesh.getRegionForPoint(position, 10);
 
     return region !== null;
   }

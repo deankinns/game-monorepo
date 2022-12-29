@@ -7,7 +7,7 @@ export class EventSystem extends System {
   component: any;
   entities = this.query((q) => q.usingAll.write);
   //@ts-ignore
-  gameWorld: GameWorld;
+  gameWorld: { actions: any[] };
 
   private actions: any[] = [];
 
@@ -28,9 +28,11 @@ export class EventSystem extends System {
 
   execute() {
     // for (const action of this.gameWorld.actions) {
-    const action = this.gameWorld.actions.shift();
-    if (action) {
-      action.action(this, action.entity, action.data);
+    if (this.gameWorld) {
+      const action = this.gameWorld.actions.shift();
+      if (action) {
+        action.action(this, action.entity, action.data);
+      }
     }
     // this.gameWorld.actions = [];
 

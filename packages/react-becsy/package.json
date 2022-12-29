@@ -1,0 +1,16 @@
+{
+  "name": "react-becsy",
+  "version": "1.0.0",
+  "dependencies": {
+    "@lastolivegames/becsy": "^0.14.3",
+    "react": "^18.2.0",
+    "zustand": "^4.1.4"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.21",
+    "eslint": "^8.24.0",
+    "eslint-config-custom": "*",
+    "tsconfig": "*",
+    "typescript": "^4.8.4"
+  }
+}

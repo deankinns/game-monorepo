@@ -38,7 +38,7 @@ class SeekToPositionGoal extends Goal<any> {
   }
 
   execute() {
-    if (this.owner.position.squaredDistanceTo(this.target) < 40) {
+    if (this.owner.position.squaredDistanceTo(this.target) < this.owner.boundingRadius) {
       // if ( this.owner.atPosition( this.target ) ) {
 
       this.status = Goal.STATUS.COMPLETED;

@@ -56,7 +56,7 @@ class _RandomWrapper {
 type NoiseParams = {seed: any, noiseType: string, scale: number, height: number, octaves: number, lacunarity: number, persistence: number, exponentiation: number}
 
 export class NoiseGenerator {
-    private _params: NoiseParams;
+    _params: NoiseParams;
     private _noise: { rand: _RandomWrapper; perlin: _PerlinWrapper; simplex: any };
     constructor(params: NoiseParams) {
         this._params = params;

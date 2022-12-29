@@ -1,12 +1,13 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState} from "react";
 import {NoiseGenerator} from "./util/noise";
 import {Box2, Vector2, Vector3} from "three";
 import {useFrame, useThree} from "@react-three/fiber";
 import {QuadTree} from "./util/quadtree";
 import {HeightGenerator} from "./util/HeightGenerator";
 import {TerrainChunk} from "./TerrainChunk";
+import {RigidBody} from "@react-three/rapier";
 
-export const TerrainBlock = (
+const TerrainBlock = forwardRef((
     {
         seed = 1,
         wireframe = true,
@@ -19,13 +20,15 @@ export const TerrainBlock = (
         exponentiation = 1.0,
         position = {x: 0, y: 0, z: 0},
         // offset = {x: 0, y: 0},
-    }: any
+        onClick,
+        onContextMenu
+    }: any, returnRef
 ) => {
-    const ref = useRef<any>(null);
+    const groupRef = useRef<any>(null);
     const chunks = useRef<any>([]);
     // const builder = new TerrainChunkRebuilder();
     const [lastBuild, setLastBuild] = React.useState(0);
-    const noise = new NoiseGenerator({
+    const noise = useMemo(() => new NoiseGenerator({
         seed,
         height,
         noiseType: 'simplex',
@@ -34,7 +37,7 @@ export const TerrainBlock = (
         lacunarity,
         scale,
         exponentiation
-    });
+    }),[seed, height, octaves, persistence, lacunarity, scale, exponentiation]);
 
     const CellIndex = (p: Vector3, cellSize: number): number[] => {
         const xp = p.x + cellSize * 0.5;
@@ -69,7 +72,6 @@ export const TerrainBlock = (
 
     useEffect(() => {
         UpdateVisibleChunks_Quadtree(camera.position);
-
     }, [camIndex, seed, height, width, persistence, lacunarity, scale, exponentiation, position]);
 
 
@@ -141,16 +143,27 @@ export const TerrainBlock = (
     //     })
     // }
 
+    useImperativeHandle(returnRef, () => {
+        return {groupRef, noise, width, height, chunks};
+    });
 
-    return <group ref={ref} position={position}>
-        {chunks.current.map((chunk: any) => <TerrainChunk
-            key={`${chunk.center.x}/${chunk.center.y} [${chunk.bounds.getSize(new Vector2()).x}]`}
-            wireframe={wireframe}
-            offset={chunk.center}
-            width={chunk.size.x}
-            resolution={64}
-            noise={chunk.noise}
-            build={lastBuild}
-        />)}
-    </group>
-}
+    return <>
+    {/*<RigidBody type={'fixed'} colliders={false} position={position} ccd={true}>*/}
+        <group ref={groupRef} /*position={position}*/ onClick={onClick} onContextMenu={onContextMenu}>
+            {chunks.current.map((chunk: any) => <TerrainChunk
+                key={`${chunk.center.x}/${chunk.center.y} [${chunk.bounds.getSize(new Vector2()).x}]`}
+                wireframe={wireframe}
+                offset={chunk.center}
+                width={chunk.size.x}
+                resolution={chunk.size.x < 500 ? 64 : 32}
+                noise={chunk.noise}
+                build={lastBuild}
+            />)}
+        </group>
+    {/*</RigidBody>*/}
+        </>
+})
+
+TerrainBlock.displayName = 'TerrainBlock';
+
+export default TerrainBlock;

@@ -48,6 +48,7 @@ class FollowPathGoal extends Goal<any> {
 
     if (!owner.components.has(componentRegistry.PathComponent)) {
       this.status = Goal.STATUS.FAILED;
+      return
     }
 
     const path = owner.components.read(componentRegistry.PathComponent).path;
@@ -87,6 +88,12 @@ class FollowPathGoal extends Goal<any> {
   }
 
   execute() {
+    if (!this.to) {
+        this.status = Goal.STATUS.FAILED;
+        return;
+    }
+
+
     if (this.active()) {
       const owner = this.owner;
 
@@ -103,7 +110,7 @@ class FollowPathGoal extends Goal<any> {
     const owner = this.owner;
 
     for (const behavior of owner.steering.behaviors) {
-      behavior.active = false;
+      // behavior.active = false;
     }
 
     if (owner.components.has(componentRegistry.PathComponent)) {

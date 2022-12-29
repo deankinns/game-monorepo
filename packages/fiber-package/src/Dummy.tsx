@@ -12,7 +12,12 @@ const anims = [
     "Running",
     "Lifting",
     "Walking",
-    "Falling Idle"
+    "Falling Idle",
+    "rifle/Rifle Run",
+    "rifle/rifle aiming idle",
+    "rifle/ybot",
+    "rifle/reloading",
+    "BodyJabCross"
 ];
 
 anims.forEach(anim => {

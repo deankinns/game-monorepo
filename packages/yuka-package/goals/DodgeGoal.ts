@@ -29,7 +29,7 @@ class DodgeGoal extends CompositeGoal<any> {
     if (this.right) {
       // dodge to right as long as there is enough space
 
-      if (owner.canMoveInDirection(right, this.targetPosition)) {
+      if (Feature.canMoveInDirection(owner, right, this.targetPosition)) {
         this.addSubgoal(new SeekToPositionGoal(owner, this.targetPosition));
       } else {
         // no space anymore, now dodge to left

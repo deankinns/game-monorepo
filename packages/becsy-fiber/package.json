@@ -10,7 +10,7 @@
   "dependencies": {
     "@react-three/drei": "^9.34.2",
     "@react-three/fiber": "^8.8.9",
-    "@react-three/rapier": "^0.6.9",
+    "@react-three/rapier": "^0.11.2",
     "becsy-package": "*",
     "becsy-yuka-package": "*",
     "fiber-package": "*",

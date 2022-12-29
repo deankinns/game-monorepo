@@ -1,5 +1,5 @@
 import {co, component, field, system, System} from "@lastolivegames/becsy";
-import {EntityManager} from "yuka";
+import {CellSpacePartitioning, EntityManager} from "yuka";
 import {
     StaticEntityComponent,
     MovingEntityComponent,
@@ -11,7 +11,7 @@ import {
     EventSystem,
     MovingEntity as MovingComponent,
     PositionComponent,
-    Deleter, State,
+    Deleter, State, Inventory,
 } from "becsy-package";
 import {GameEntity, MovingEntity, Vehicle} from "yuka-package";
 import {EntityManagerComponent} from "../components/EntityManagerComponent";
@@ -32,13 +32,17 @@ export class EntityManagerSystem extends System {
     entityManagerSingle = this.singleton.write(EntityManagerComponent);
     reference: any;
 
-    timeMultiplier = 1000;
+    timeMultiplier = 1;
+
+    writable = this.query(q => q.usingAll.write)
 
     async prepare(): Promise<void> {
         this.reference.current = this.entityManager
     }
 
     initialize() {
+        this.entityManager.spatialIndex = new CellSpacePartitioning(1000, 100, 1000, 100, 10, 100);
+
         this.entityManagerSingle.manager = this.entityManager;
     }
 
@@ -109,6 +113,8 @@ export class EntityManagerSystem extends System {
             ).added.removed.write
     );
 
+    checkable = this.query(q => q.using(Inventory).read)
+
     // entityManager = this.singleton.read(EntityManagerComponent)
     execute() {
         for (const entity of this.factory.current) {
@@ -116,7 +122,7 @@ export class EntityManagerSystem extends System {
 
                 entity.add(PositionComponent, {
                     // @ts-ignore
-                    position: [Math.random() * 100 - 50, 10, Math.random() * 100 - 50],
+                    position: [Math.random() * 100 - 50, 50, Math.random() * 100 - 50],
                 });
             }
 
@@ -135,6 +141,9 @@ export class EntityManagerSystem extends System {
                 }
                 gameEntity = new Vehicle(entity.hold());
                 gameEntity.maxSpeed = 100;
+                gameEntity.updateNeighborhood = true;
+                gameEntity.neighborhoodRadius = 100;
+                // gameEntity.maxTurnRate = Math.PI * .5;
             } else {
                 // continue
                 throw "no";
@@ -142,6 +151,7 @@ export class EntityManagerSystem extends System {
             const {x, y, z} = entity.read(PositionComponent).position;
             gameEntity.position.set(x, y, z);
             gameEntity.boundingRadius = 10;
+            gameEntity.maxTurnRate = Infinity;
             this.entityManager.add(gameEntity);
 
             // this.entityManager.add(GameEntityWrapper(entity));
@@ -149,13 +159,13 @@ export class EntityManagerSystem extends System {
             entity.add(GameEntityComponent, {entity: gameEntity});
         }
 
-        // this.entityManager.update(this.delta / this.timeMultiplier);
+        this.entityManager.update(this.delta / this.timeMultiplier);
 
         for (const entity of this.entities.current) {
             const gameEntity = entity.read(GameEntityComponent).entity;
             if (gameEntity) {
                 // gameEntity.components.hold()
-                this.entityManager.updateEntity(gameEntity, this.delta / this.timeMultiplier)
+                // this.entityManager.updateEntity(gameEntity, this.delta / this.timeMultiplier)
 
                 const position = entity.write(PositionComponent);
                 position.position.x = gameEntity.position.x;
@@ -172,6 +182,8 @@ export class EntityManagerSystem extends System {
                     moving.velocity.x = gameEntity.velocity.x;
                     moving.velocity.y = gameEntity.velocity.y;
                     moving.velocity.z = gameEntity.velocity.z;
+
+
                 }
             }
         }
@@ -185,7 +197,7 @@ export class EntityManagerSystem extends System {
             }
         }
 
-        this.processTriggers();
+        // this.processTriggers();
     }
 }
 

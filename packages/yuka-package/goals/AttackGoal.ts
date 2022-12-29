@@ -1,10 +1,12 @@
-import { CompositeGoal, GameEntity, Goal, Vector3, Vehicle } from "yuka";
+import { CompositeGoal, GameEntity, Goal, Vector3 } from "yuka";
 import { HuntGoal } from "./HuntGoal";
 import { DodgeGoal } from "./DodgeGoal";
 import { ChargeGoal } from "./ChargeGoal";
 import { PathPlanner } from "../core";
 import _ from "lodash";
 import { Attacker, InWorld } from "../core/Types";
+import {componentRegistry, Vehicle} from "../entities";
+import { Feature } from "../core/Feature";
 // import {AIComponent, Target} from "../../becsy/components";
 
 const left = new Vector3(-1, 0, 0);
@@ -50,66 +52,68 @@ function applyMixins(derivedCtor: any, constructors: any[]) {
  * @author {@link https://github.com/Mugen87|Mugen87}
  */
 export class AttackGoal extends CompositeGoal<GoalSubject> {
-  constructor(owner: Vehicle) {
-    super(owner as GoalSubject);
-  }
+  // constructor(owner: Vehicle) {
+  //   super(owner as GoalSubject);
+  // }
 
   activate() {
     // if this goal is reactivated then there may be some existing subgoals that must be removed
 
     this.clearSubgoals();
 
-    const owner = this.owner as GoalSubject;
+    const owner = this.owner as Vehicle | any;
 
     // if the enemy is able to shoot the target (there is line of sight between enemy and
     // target), then select a tactic to follow while shooting
 
-    const isTargetShootable = (target: any): boolean => {
-      // let result = false;
-      // if (target.has(AIComponent)) {
-      //   const hasNeighbour = owner.neighbors.filter(n => {
-      //     if (n.entity === target) {
-      //       return true;
-      //     }
-      //     return false;
-      //   })
-      //   result = hasNeighbour.length > 0
-      // }
-      //
-      // return result;
-      return true;
-    };
+    // const isTargetShootable = (target: any): boolean => {
+    //   // let result = false;
+    //   // if (target.has(AIComponent)) {
+    //   //   const hasNeighbour = owner.neighbors.filter(n => {
+    //   //     if (n.entity === target) {
+    //   //       return true;
+    //   //     }
+    //   //     return false;
+    //   //   })
+    //   //   result = hasNeighbour.length > 0
+    //   // }
+    //   //
+    //   // return result;
+    //   return true;
+    // };
 
     // const canMoveInDirection = (entity, direction, target): boolean => {
     //   return false;
     // }
 
-    // if (!owner.entity.has(Target)) {
-    if (!owner.AttackTarget) {
+    if (!owner.components.has(componentRegistry.Target)) {
+    // if (!owner.AttackTarget) {
       this.status = Goal.STATUS.FAILED;
       return;
     }
 
+    const target = owner.components.read(componentRegistry.Target).value
+    const targetVehicle = target.read(componentRegistry.GameEntityComponent).entity;
     // const target = owner.entity.read(Target).value
-    const target = owner.AttackTarget;
+    // const target = owner.AttackTarget;
 
     // owner.manager.pathPlanner;
 
-    if (isTargetShootable(target) === true) {
+    if (Feature.isTargetShootable(owner, targetVehicle) === true) {
       // if the enemy has space to strafe then do so
 
       if (
-        owner.world.PathPlanner.canMoveInDirection(owner, left, targetPosition)
+        Feature.canMoveInDirection(owner, left, targetPosition)
       ) {
         this.addSubgoal(new DodgeGoal(owner, false));
       } else if (
-        owner.world.PathPlanner.canMoveInDirection(owner, right, targetPosition)
+          Feature.canMoveInDirection(owner, right, targetPosition)
       ) {
         this.addSubgoal(new DodgeGoal(owner, true));
       } else {
         // if not able to strafe, charge at the target's position
 
-        this.addSubgoal(new ChargeGoal(owner));
+        this.addSubgoal(new ChargeGoal(owner, targetVehicle));
       }
     } else {
       // if the target is not visible, go hunt it
@@ -125,7 +129,8 @@ export class AttackGoal extends CompositeGoal<GoalSubject> {
     const owner = this.owner as GoalSubject;
 
     // if ( owner.targetSystem.hasTarget() === false ) {
-    if (!owner.AttackTarget) {
+    // if (!owner.AttackTarget) {
+    if (!owner.components.has(componentRegistry.Target)) {
       this.status = Goal.STATUS.COMPLETED;
     } else {
       const currentSubgoal = this.currentSubgoal();

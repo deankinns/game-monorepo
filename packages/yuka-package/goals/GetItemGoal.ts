@@ -1,7 +1,7 @@
 import {CompositeGoal, Vector3, Goal, Regulator} from "yuka";
 import {FindPathGoal} from "./FindPathGoal";
 import {FollowPathGoal} from "./FollowPathGoal";
-import {CONFIG} from "../core";
+import {CONFIG, Vector3ToYuka} from "../core";
 // import {CollectableComponent, Target} from "../../becsy/components";
 import {SeekToPositionGoal} from "./SeekToPositionGoal";
 import {PickUpCollectibleGoal} from "./PickUpCollectibleGoal";
@@ -10,7 +10,7 @@ import _ from "lodash";
 import {
     componentRegistry,
     componentWrapper,
-    GameEntity,
+    GameEntity, PathComponent,
     Vehicle,
 } from "../entities";
 import {Feature} from "../core/Feature";
@@ -185,11 +185,44 @@ class GetItemGoal extends CompositeGoal<Vehicle> {
             this.status = Goal.STATUS.FAILED;
             return;
         }
+        const target = owner.components.read(componentRegistry.Target).value;
 
+        // const target = owner.components.read(componentRegistry.Target).value;
+        //
+        // if (owner.components.has(componentRegistry.PathComponent)) {
+        //     const path = owner.components.read(componentRegistry.PathComponent).path;
+        //
+        //     if (path.length > 0) {
+        //         const end = path[path.length - 1] as Vector3;
+        //         const {position} = target.read(componentRegistry.Position);
+        //
+        //         if (end.distanceTo(new Vector3(position.x, position.y, position.z )) > 10) {
+        //             // path.pop();
+        //             owner.remove(componentRegistry.PathComponent)
+        //         }
+        //     }
+        // }
+
+        if (!target){
+            this.status = Goal.STATUS.FAILED;
+            return;
+        }
 
         if (this.active()) {
             // only check the availability of the item if it is visible for the enemy
-            const target = owner.components.read(componentRegistry.Target).target;
+
+
+            // const brain = owner.components.read(componentRegistry.BrainComponent).object;
+            const currentSubgoal = this.currentSubgoal();
+            if (currentSubgoal instanceof FollowPathGoal) {
+                const tagertpos = target.read(componentRegistry.Position).position;
+                const d = currentSubgoal.to.distanceTo(new Vector3(tagertpos.x, tagertpos.y, tagertpos.z));
+
+                if (d > 10) {
+                    this.status = Goal.STATUS.FAILED;
+                    return;
+                }
+            }
             if (
                 this.regulator.ready() &&
                 target /* && this.owner.vision.visible(this.item.position)*/

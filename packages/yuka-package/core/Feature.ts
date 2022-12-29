@@ -5,7 +5,7 @@ import {
   WEAPON_TYPES_ASSAULT_RIFLE,
 } from "./Constants";
 import { EntityManager, MathUtils, Vector3 } from "yuka";
-import { GameEntity, Vehicle } from "../entities";
+import {GameEntity, MovingEntity, Vehicle} from "../entities";
 import _ from "lodash";
 import { componentRegistry } from "../entities/Components";
 // import {Vehicle} from "../entities/Vehicle";
@@ -17,11 +17,13 @@ export class Feature {
   static totalWeaponStrength(enemy: Vehicle & { data?: any }) {
     let total = 0;
 
-    // if (enemy.entity.has('Inventory')) {
-    if (enemy.data.inventory) {
+    if (enemy.components.has(componentRegistry.Inventory)) {
+      const inventory = enemy.components.read(componentRegistry.Inventory);
+    // if (enemy.data.inventory) {
       // const inventory = enemy.entity.read('Inventory');
-      for (const entity of enemy.data.inventory) {
-        if (entity.has("Weapon")) {
+      // for (const entity of enemy.data.inventory) {
+      for (const entity of inventory.contents) {
+        if (entity.has(componentRegistry.Weapon)) {
           total += 1;
         }
       }
@@ -118,18 +120,23 @@ export class Feature {
    * @return {Boolean} Whether the enemy can move a bit to the left or not.
    */
   static canMoveInDirection(
-    entity: Vehicle & { world: any },
+    entity: Vehicle & { manager: any },
     direction: Vector3,
     position: Vector3
   ) {
+    return false
     position.copy(direction).applyRotation(entity.rotation).normalize();
     position
       .multiplyScalar(CONFIG.BOT.MOVEMENT.DODGE_SIZE)
       .add(entity.position);
 
-    const navMesh = entity.world.navMesh;
-    const region = navMesh.getRegionForPoint(position, 1);
+    const navMesh = entity.manager.pathPlanner.navMesh;
+    const region = navMesh.getRegionForPoint(position, 10);
 
     return region !== null;
+  }
+
+  static isTargetShootable(enemy: GameEntity | MovingEntity | Vehicle, target: GameEntity | MovingEntity | Vehicle) {
+    return true;
   }
 }

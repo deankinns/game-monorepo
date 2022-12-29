@@ -1,7 +1,7 @@
-import React, {useContext} from "react";
+import React, {useContext, useRef} from "react";
 import {PlayerContext} from 'becsy-fiber';
 import {GameWorldContext} from "becsy-ui";
-import {Inventory, Health, Healing, Collectable, Weapon,} from "becsy-package";
+import {Inventory, Health, Healing, Collectable, Weapon, PositionComponent,} from "becsy-package";
 import {
     BrainComponent,
     VehicleEntityComponent,
@@ -9,35 +9,45 @@ import {
     MemoryComponent,
     StaticEntityComponent
 } from "becsy-yuka-package";
+import {ECSContext, RefComponent, useEcsStore} from "react-becsy";
+import {System} from "@lastolivegames/becsy";
 
 export const Toolbar = ({actions}: { actions?: any[] }) => {
 
-    const world = useContext(GameWorldContext);
+    // const world = useContext(ECSContext);
+    const world = useEcsStore().ecs;
     const player = useContext(PlayerContext);
+    // const playerRef = useRef<{head: any, hand: any, obj: any}>({head: null, hand: null, obj: null});
 
     const addEntity = (type: string) => {
         // console.log('hello')
 
         switch (type) {
             case "player":
-                world?.enqueueAction((sys) =>
-                    sys.createEntity(
+                world.enqueueAction((sys: System) => {
+                    const e = sys.createEntity(
                         Health,
                         VehicleEntityComponent,
                         Inventory,
                         BrainComponent,
                         VisionComponent,
-                        MemoryComponent
+                        MemoryComponent,
+                        // RefComponent, {ref: playerRef}
+                        // PositionComponent, {position: {x: 0, y: 10, z: 0}},
                     )
+
+                    }
                 );
                 break;
             case "health":
-                world?.enqueueAction((sys) =>
-                    sys.createEntity(Healing, Collectable, StaticEntityComponent)
+                world.enqueueAction((sys) =>
+                    sys.createEntity(Healing, Collectable, StaticEntityComponent,
+                        // PositionComponent, {position: {x: 0, y: 10, z: 10}},
+                    )
                 );
                 break;
             case "gun":
-                world?.enqueueAction((sys) => sys.createEntity(Collectable, Weapon, StaticEntityComponent));
+                world.enqueueAction((sys) => sys.createEntity(Collectable, Weapon, {ammo: 10, maxAmmo: 10}, StaticEntityComponent));
                 break;
         }
 

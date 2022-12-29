@@ -4,7 +4,7 @@ import {GameWindow} from "./GameWindow";
 
 function App() {
     return (
-        <GameWindow id={1}/>
+        <GameWindow />
     );
 }
 

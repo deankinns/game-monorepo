@@ -3,8 +3,9 @@ import {EntityPanel} from "./EntityPanel";
 import {GameWindow} from "../../apps/ecs-debug/src/GameWindow";
 import {Entity, System} from "@lastolivegames/becsy";
 import {createRef, useContext, useEffect, useRef, useState} from "react";
-import {GameWorldContext, RenderContext} from "./GameWorldWrapper";
+import { RenderContext} from "./GameWorldWrapper";
 import {Render} from "becsy-package";
+import {useSystem} from 'react-becsy';
 
 export const EntityList = ({
     entities,
@@ -14,10 +15,15 @@ export const EntityList = ({
     filters?: any,
 }) => {
     const [frame, setFrame] = useState<number>(0)
-    const render = useContext(RenderContext)
+    // const render = useContext(RenderContext)
 
+    const render = useSystem(Render) as Render
+    //
+    // useEffect(() => {
+    //
+    // }, [s]);
     useEffect(() => {
-        console.log('render list', render)
+        // console.log('render list', render)
         if (render) {
             // render.cb = (system) => {
             //     setFrame(system.time);

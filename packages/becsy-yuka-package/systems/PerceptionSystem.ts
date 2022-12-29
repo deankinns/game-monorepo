@@ -7,14 +7,14 @@ import { System, system } from "@lastolivegames/becsy";
 import { VisionComponent } from "../components/Vision";
 import { MemoryComponent } from "../components/Memory";
 import { MemorySystem, Vision } from "yuka";
-import { Healing, Target } from "becsy-package";
+import {Healing, PositionComponent, Target, MovingEntity, State} from "becsy-package";
 import { ThinkSystem } from "./ThinkSystem";
-import { PathPlanner } from "yuka-package";
 import { GameEntityComponent } from "./GameEntitySystem";
+import {NavigationSystem} from "./NavigationSystem";
 
 @system((s) =>
   s
-    .before(ThinkSystem)
+    .before(ThinkSystem, NavigationSystem)
     .afterWritersOf(
       StaticEntityComponent,
       MovingEntityComponent,
@@ -29,10 +29,10 @@ export class PerceptionSystem extends System {
   );
 
   memory = this.query(
-    (q) => q.current.with(MemoryComponent).added.removed.write
+    (q) => q.current.with(MemoryComponent, GameEntityComponent).added.removed.write
   );
 
-  checkable = this.query((q) => q.using(Healing, Target).read);
+  checkable = this.query((q) => q.using(Healing, Target, PositionComponent, MovingEntity, State).read);
 
   execute() {
     for (const entity of this.vision.added) {

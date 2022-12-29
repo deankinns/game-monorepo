@@ -1,6 +1,6 @@
 import * as React from "react";
-import {Component, useContext, useEffect} from "react";
-import {Entity, System} from "@lastolivegames/becsy";
+import {Component, useContext, useEffect, useMemo, useRef} from "react";
+import {ComponentEnum, ComponentType, Entity, System} from "@lastolivegames/becsy";
 // import {GameWindow} from "../../apps/ecs-debug/src/GameWindow";
 import {RenderComponent, ToBeDeleted} from "becsy-package";
 // import * as components from "../../node_modules/becsy-package"
@@ -8,6 +8,7 @@ import {ComponentPanel} from "./ComponentPanel";
 import {EntityList} from "./EntityList";
 import {ComponentList} from "./ComponentList";
 import {GameWorldContext} from "./GameWorldWrapper";
+import {ECSContext, useEcsStore} from "react-becsy";
 
 let components = [];
 
@@ -37,46 +38,75 @@ let components = [];
 //     // components = this.parent.world.world.__dispatcher.registry.types;
 //   }
 
-export const EntityPanel = (props: { entity: Entity }) => {
+export const EntityPanel = ({entity}: { entity: Entity }) => {
 
-    const world = useContext(GameWorldContext);
-    const [has, setHas] = React.useState([]);
-    const [hasNot, setHasNot] = React.useState([]);
+    // const world = useContext(GameWorldContext);
+    // const world = useContext(ECSContext);
+    const world = useEcsStore().ecs
+    // const [has, setHas] = React.useState([]);
+    // const [hasNot, setHasNot] = React.useState([]);
     const [show, setShow] = React.useState(false);
 
     const [component, setComponent] = React.useState("Select");
 
-    const sortComponents = () => {
+    // const types = useRef()
 
-        // const world = EntityPanel.worldContext;
-        // if (world) {
-        //     console.log(world);
-        // }
+    // const types = useMemo(() => {
 
-        // this.has = [];
-        // this.hasNot = [];
+    const {types, has, hasNot} = useMemo(() => {
         //@ts-ignore
-        const types = world.world.__dispatcher.registry.types.filter(
+        const types = world.world?.__dispatcher.registry.types.filter(
             (type: any) => type.__binding && type.name !== "Alive"
         );
-        //@ts-ignore
-        setHas(types.filter((type) => {
+        const has = types.filter((type: ComponentType<any> | ComponentEnum) => {
             try {
-                return props.entity.has(type);
+                return entity.has(type);
             } catch (e) {
                 return false;
             }
-        }));
-        //@ts-ignore
-        setHasNot(types.filter((type) => {
-            try {
-                return !props.entity.has(type);
-            } catch (e) {
-                return false;
-            }
-        }));
+        })
 
-    }
+        const hasNot = types.filter((type: ComponentType<any> | ComponentEnum) => {
+            try {
+                return !entity.has(type);
+            } catch (e) {
+                return false;
+            }
+        })
+        return {types, has, hasNot}
+    }, [entity, world]);
+
+    // const sortComponents = () => {
+    //
+    //     // const world = EntityPanel.worldContext;
+    //     // if (world) {
+    //     //     console.log(world);
+    //     // }
+    //
+    //     // this.has = [];
+    //     // this.hasNot = [];
+    //     //@ts-ignore
+    //     // const types = world.world.__dispatcher.registry.types.filter(
+    //     //     (type: any) => type.__binding && type.name !== "Alive"
+    //     // );
+    //     //@ts-ignore
+    //     setHas(prev => types.filter((type) => {
+    //         try {
+    //             return entity.has(type);
+    //         } catch (e) {
+    //             return false;
+    //         }
+    //     }));
+    //     //@ts-ignore
+    //     setHasNot(prev => types.filter((type) => {
+    //         try {
+    //             return !entity.has(type);
+    //         } catch (e) {
+    //             return false;
+    //         }
+    //     }));
+    //
+    // }
 
     const entityOptions = () => {
         return [{name: "Select"}, ...hasNot].map((k: any) => (
@@ -95,11 +125,11 @@ export const EntityPanel = (props: { entity: Entity }) => {
                     entity?.add(types[0]);
                 }
             },
-            props.entity,
+            entity,
             {component}
         );
 
-        sortComponents();
+        // sortComponents();
         setComponent("Select");
     }
 
@@ -108,14 +138,14 @@ export const EntityPanel = (props: { entity: Entity }) => {
             (sys, entity) => {
                 entity?.delete();
             },
-            props.entity
+            entity
         );
     }
 
     //
-    useEffect(() => {
-        sortComponents()
-    }, [props.entity]);
+    // useEffect(() => {
+        // sortComponents()
+    // }, [entity]);
     // const handleChange = (event: any) => {
     //   // this.setState({ component: event.target.value });
     // }
@@ -130,7 +160,7 @@ export const EntityPanel = (props: { entity: Entity }) => {
                     style={{display: "flex", flexDirection: "row"}}
                 >
                     <p>
-                        {props.entity.__id}
+                        {entity.__id}
                     </p>
                     <select value={component} onChange={e => setComponent(e.target.value)}>
                         {entityOptions()}
@@ -151,7 +181,7 @@ export const EntityPanel = (props: { entity: Entity }) => {
                     </button>
                 </div>
 
-                {show ? <ComponentList components={has} entity={props.entity}/> : null}
+                {show ? <ComponentList components={has} entity={entity}/> : null}
             </div>
         );
     } catch (e) {

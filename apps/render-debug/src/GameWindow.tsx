@@ -43,7 +43,7 @@ export class GameWindow extends React.Component<any, any> {
                     this.scene = state.scene
                     state.camera.far = 100000000;
                 }}>
-                    <OrbitControls />
+                    {/*<OrbitControls />*/}
                     <Suspense fallback={null}>
                         <Physics>
                             {this.state.debug ? <Debug/> : null}

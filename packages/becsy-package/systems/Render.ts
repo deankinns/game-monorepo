@@ -1,6 +1,8 @@
 import {Entity, System, system} from "@lastolivegames/becsy";
+import {useEcsStore} from "react-becsy";
 import {Keyboard, RenderComponent} from "../components";
 import {Deleter} from "./Deleter";
+
 
 @system((s) => s.afterWritersOf(RenderComponent).before(Deleter))
 export class Render extends System {
@@ -17,12 +19,14 @@ export class Render extends System {
     private readonly keysPressed = new Set<string>();
 
     async prepare() {
-        this.reference.current = this;
-    }
+        if (this.reference) {
+            this.reference.current = this;
+        }
+        // useEcsStore.setState({systems: {...useEcsStore.getState().systems, Render: this}});
+        useEcsStore.getState().addSystem(this);
+  //  }
 
-    initialize(): void {
-
-
+ //   initialize(): void {
         document.addEventListener("keydown", (event: KeyboardEvent) => {
             this.keysPressed.add(event.key); // add the pressed key to our set
         });
@@ -30,8 +34,6 @@ export class Render extends System {
         document.addEventListener("keyup", (event: KeyboardEvent) => {
             this.keysPressed.delete(event.key); // remove the released key from our set
         });
-
-        // this.component.renderSystem = this;
     }
 
     execute() {
@@ -41,7 +43,10 @@ export class Render extends System {
             this.createEntity(RenderComponent, {name: "something"});
         }
 
+        // useEcsStore.setState({entities: this.items.current})
+      //  useEcsStore.setEntities(this.items.current);
 
+        // const store = useEcsStore.getState().setEntities(this.items.current);
         const selected = this.selected;
 
         // @ts-ignore

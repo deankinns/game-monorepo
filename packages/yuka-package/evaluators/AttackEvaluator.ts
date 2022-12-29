@@ -45,7 +45,7 @@ class AttackEvaluator extends GoalEvaluator<Vehicle> {
       if (!target) {
         owner.components.remove(componentRegistry.Target);
       } else {
-        if (target.has("Soldier")) {
+        if (target.has(componentRegistry.VehicleEntityComponent)) {
           desirability =
             this.tweaker *
             Feature.totalWeaponStrength(owner) *

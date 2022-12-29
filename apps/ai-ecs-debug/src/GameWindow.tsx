@@ -8,7 +8,7 @@ import {
 } from "yuka-package";
 import {EntityList, EntityManagerWrapper} from "yuka-ui";
 
-import {EntityListPanel, GameWorldWrapper, GameWorldContext} from "becsy-ui";
+import {EntityListPanel/*, GameWorldWrapper, GameWorldContext*/} from "becsy-ui";
 
 import "becsy-package/systems";
 import "becsy-yuka-package/systems";
@@ -37,6 +37,7 @@ import {
 } from "becsy-package";
 import {useContext, useEffect, useRef, useState} from "react";
 
+import {useEcsStore, Entity as EntityComponent} from "react-becsy";
 componentRegistry.Health = Health;
 componentRegistry.Packed = Packed;
 componentRegistry.Healing = Healing;
@@ -78,16 +79,37 @@ export const GameWindow = ({id}: { id: any }) => {
 
     const requestRef = React.useRef(0);
     const previousTimeRef = React.useRef(0);
+
+    // const ECS = useECS([
+    //     // Render, {reference: renderRef},
+    //     EntityManagerSystem, {reference: managerRef, timeMultiplier: 1}
+    // ], (world: World) => {
+    //     // setRender(renderRef.current)
+    //     // setEntityManager(managerRef.current);
+    //     cb(world);
+    // });
+    const ecsStore = useEcsStore();
+    const ECS = ecsStore.ecs;
+
+    useEffect(() => {
+        ecsStore.create([
+            EntityManagerSystem, {reference: managerRef, timeMultiplier: 1}
+        ], cb);
+    } , [])
+
+
     const animate = ((time: number) => {
         if (previousTimeRef.current != undefined) {
             const deltaTime = time - previousTimeRef.current;
-            worldRef.current?.execute(time, deltaTime);
+            // worldRef.current?.execute(time, deltaTime);
+            ECS?.world?.execute(time, deltaTime);
         }
         previousTimeRef.current = time;
         requestRef.current = requestAnimationFrame(animate);
 
         setFrame(time);
     })
+
 
     useEffect(() => {
         requestAnimationFrame(animate);
@@ -96,11 +118,7 @@ export const GameWindow = ({id}: { id: any }) => {
 
     return (
         <div id={`gameWindow${id}`}>
-            <GameWorldWrapper
-                ref={worldRef}
-                defs={[EntityManagerSystem, {reference: managerRef}]}
-                buildCallback={cb}
-            >
+            {/*<ECS.Provider            >*/}
 
                 <Toolbar/>
                 <div
@@ -119,14 +137,15 @@ export const GameWindow = ({id}: { id: any }) => {
                         <EntityListPanel/>
                     </div>
                 </div>
-            </GameWorldWrapper>
+            {/*</ECS.Provider>*/}
         </div>
     );
 }
 
 
 export const Toolbar = () => {
-    const world = useContext(GameWorldContext);
+    // const world = useContext(ECSContext);
+    const world = useEcsStore().ecs
 
     const addEntity = (type: string) => {
         switch (type) {

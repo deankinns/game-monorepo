@@ -12,8 +12,8 @@ export const AIComponent = () => {};
  * @author {@link https://github.com/Mugen87|Mugen87}
  */
 class HuntGoal extends CompositeGoal<any> {
-  record: MemoryRecord;
-  constructor(owner) {
+  record: MemoryRecord|null = null;
+  constructor(owner: any) {
     super(owner);
   }
 
@@ -32,7 +32,7 @@ class HuntGoal extends CompositeGoal<any> {
       this.status = Goal.STATUS.FAILED;
       return;
     }
-    this.record = memory.getRecord(target);
+    const record = memory.getRecord(target);
 
     // const targetPosition = owner.targretSystem.getLastSensedPosition();
 
@@ -40,7 +40,8 @@ class HuntGoal extends CompositeGoal<any> {
     // between the current and target position
 
     const from = new Vector3().copy(owner.position);
-    const to = new Vector3().copy(this.record.lastSensedPosition);
+    const to = new Vector3().copy(record.lastSensedPosition);
+    this.record = record;
 
     // setup subgoals
 
@@ -60,6 +61,7 @@ class HuntGoal extends CompositeGoal<any> {
     // if (owner.targetSystem.isTargetShootable()) {
     if (
       this.record.visible &&
+      this.record.entity &&
       this.record.entity.position.distanceTo(owner.position) < 5
     ) {
       this.status = Goal.STATUS.COMPLETED;

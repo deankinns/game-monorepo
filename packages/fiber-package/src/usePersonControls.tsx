@@ -9,6 +9,10 @@ export const usePersonControls = () => {
         Space: 'jump',
         ShiftLeft: 'sprint',
         ControlLeft: 'crouch',
+        ArrowLeft: 'lookLeft',
+        ArrowRight: 'lookRight',
+        ArrowUp: 'lookUp',
+        ArrowDown: 'lookDown',
     }
 
     // @ts-ignore
@@ -22,6 +26,10 @@ export const usePersonControls = () => {
         jump: false,
         sprint: false,
         crouch: false,
+        lookLeft: 0,
+        lookRight: 0,
+        lookUp: 0,
+        lookDown: 0,
     })
 
     useEffect(() => {

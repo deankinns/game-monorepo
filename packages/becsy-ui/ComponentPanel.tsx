@@ -1,17 +1,39 @@
 import * as React from "react";
-import { Entity } from "@lastolivegames/becsy";
+import {Entity, World,} from "@lastolivegames/becsy";
 import { EntityPanel } from "./EntityPanel";
 import { toJSON, fromJSON, stringify } from "flatted";
+import {useEcsStore } from "react-becsy";
 import {useContext} from "react";
-import {GameWorldContext} from "./GameWorldWrapper";
+// import {GameWorldContext} from "./GameWorldWrapper";
+import {retrocycle, decycle} from "./cycle";
+
+'./cycle'
 
 // export class ComponentPanel extends React.Component<any, any> {
 //   constructor(props: { component: any; parent: EntityPanel }) {
 //     super(props);
 //   }
+const getCircularReplacer = () => {
+  const seen = new WeakSet();
+  return (key: any, value: any) => {
+    if (value instanceof World || (value.isAlive && typeof value.isAlive === 'function')) {
+        return;
+    }
+
+    if (typeof value === "object" && value !== null) {
+      if (seen.has(value)) {
+        return;
+      }
+      seen.add(value);
+    }
+    return value;
+  };
+};
+
 export const ComponentPanel = (props: { component: any; entity: Entity }) => {
 
-  const world = useContext(GameWorldContext)
+  // const world = useContext(GameWorldContext)
+  const world = useEcsStore().ecs
 
   const removeComponent = (component: any) => {
     world?.enqueueAction(
@@ -46,7 +68,15 @@ export const ComponentPanel = (props: { component: any; entity: Entity }) => {
 
     let dataStr = "";
     try {
+      if (props.component.name === 'RefComponent') {
+        dataStr = 'ref'
+        throw null
+      }
+
+      // if (data.toString())
+      // const o = decycle(data, getCircularReplacer)
       dataStr = JSON.stringify(data, undefined, 4);
+        // dataStr = data.toString()
     } catch (e) {}
     return (
       <div style={{ display: "flex", flexDirection: "column" }}>

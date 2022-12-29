@@ -11,7 +11,7 @@
   "dependencies": {
     "@react-three/drei": "^9.34.2",
     "@react-three/fiber": "^8.8.9",
-    "@react-three/rapier": "^0.6.9",
+    "@react-three/rapier": "^0.11.2",
     "3d-dungeon-generator": "^1.0.2",
     "fiber-package": "*",
     "react": "^18.2.0",

@@ -22,6 +22,13 @@ export const componentRegistry = {
   Weapon: Weapon as any,
   State: "State" as any,
   Position: "Position" as any,
+  Inventory: {contents: []} as any,
+  Selected: "Selected" as any,
+  ToBeDeleted: "ToBeDeleted" as any,
+  Render: "Render" as any,
+  VehicleEntityComponent: "VehicleEntityComponent" as any,
+  NavMeshComponent: "NavMeshComponent" as any,
+  GameEntityComponent: "GameEntityComponent" as any,
 };
 
 export interface componentWrapperInterface {

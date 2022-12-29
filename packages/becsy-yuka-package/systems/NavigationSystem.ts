@@ -3,27 +3,34 @@ import {
     NavMeshComponent,
     PathComponent,
     PathRequestComponent,
-} from "../components/NavMeshComponent";
+} from "../components";
 import {Deleter, EventSystem, Render} from "becsy-package";
 import {PathPlanner, Vehicle} from "yuka-package";
 import {GameEntityComponent} from "./GameEntitySystem";
-import {VehicleEntityComponent} from "../components";
 import {Vector3} from "yuka";
+import {ThinkSystem} from "./ThinkSystem";
+import {EntityManagerComponent} from "../components/EntityManagerComponent";
 
-@system((s) => s.after(EventSystem).before(Deleter, Render))
+@system((s) => s.after(EventSystem, ThinkSystem).before(Deleter, Render))
 export class NavigationSystem extends System {
     navigators = this.query(
         (q) => q.with(PathRequestComponent, GameEntityComponent).added.current.write
     );
     navMeshes = this.query((q) => q.with(NavMeshComponent).added.current.write);
-    running = this.query(q => q.with(PathComponent, GameEntityComponent).added.current.write);
+    running = this.query(q => q.with(PathComponent, GameEntityComponent).added.current.write.using(PathRequestComponent));
 
+    entityManagerSingle = this.singleton.write(EntityManagerComponent);
     // pathPlanners: PathPlanner[] = [];
 
     execute() {
         for (const entity of this.navMeshes.added) {
             const navMesh = entity.read(NavMeshComponent).navMesh;
-            entity.write(NavMeshComponent).pathPanner = new PathPlanner(navMesh);
+            navMesh.spatialIndex = this.entityManagerSingle.manager.spatialIndex;
+            navMesh.updateSpatialIndex()
+            const pathPanner = new PathPlanner(navMesh);
+            entity.write(NavMeshComponent).pathPanner = pathPanner
+            // @ts-ignore
+            this.entityManagerSingle.manager.pathPlanner = pathPanner;
         }
         // super.execute();
 
@@ -59,6 +66,10 @@ export class NavigationSystem extends System {
             const path = entity.read(PathComponent).path;
 
             if (path.length > 0 && vehicle.position.distanceTo(path[path.length-1]) < vehicle.boundingRadius) {
+                entity.remove(PathComponent);
+            }
+
+            if (entity.has(PathRequestComponent)) {
                 entity.remove(PathComponent);
             }
 

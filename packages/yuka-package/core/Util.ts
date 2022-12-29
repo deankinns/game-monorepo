@@ -1,6 +1,6 @@
 import {Quaternion, Vector3} from "yuka";
 
-export const Vector3ToYuka = (v: {x: number, y: number, z: number}, result: Vector3) => {
+export const Vector3ToYuka = (v: {x: number, y: number, z: number}, result: Vector3 = new Vector3) => {
     return result.set(v.x, v.y, v.z);
 }
 

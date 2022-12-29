@@ -22,7 +22,7 @@ class GetWeaponEvaluator extends GoalEvaluator<any> {
    * @param {Number} characterBias - Can be used to adjust the preferences of the enemy.
    * @param {Number} itemType - The item type.
    */
-  constructor(characterBias = 1, itemType = null) {
+  constructor(characterBias = 1, itemType: any = null) {
     super(characterBias);
 
     this.itemType = itemType;

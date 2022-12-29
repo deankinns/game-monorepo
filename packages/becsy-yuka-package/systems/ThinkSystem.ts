@@ -1,36 +1,13 @@
 import {system, System} from "@lastolivegames/becsy";
-import {
-    BrainComponent,
-    StaticEntityComponent,
-    MovingEntityComponent,
-    VehicleEntityComponent,
-    PathComponent,
-    PathRequestComponent,
-} from "../components";
-import {Think, Regulator} from "yuka";
-import {
-    Healing,
-    Health,
-    Render,
-    Target,
-    Deleter,
-    Packed,
-    Selected,
-    PositionComponent,
-    Inventory,
-    InventorySystem,
-    State
-} from "becsy-package";
-import {GetHealthEvaluator, ExploreEvaluator} from "yuka-package";
-import {
-    EntityManagerSystem,
-    GameEntityComponent,
-    // EntityManagerSystem,
-    // StaticEntitySystem,
-    // VehicleEntitySystem
-} from "./GameEntitySystem";
+import {BrainComponent, PathComponent, PathRequestComponent,} from "../components";
+import {Regulator, Think} from "yuka";
+import {Inventory, InventorySystem, Packed, Render, Selected, State, Target} from "becsy-package";
+import {ExploreEvaluator} from "yuka-package";
+import {EntityManagerSystem, GameEntityComponent,} from "./GameEntitySystem";
+import {HealthSystem} from "./HealthSystem";
+import {CombatSystem} from "./CombatSystem";
 
-@system((s) => s.after(EntityManagerSystem).before(HealthSystem, Render).inAnyOrderWith(InventorySystem))
+@system((s) => s.after(EntityManagerSystem).before(HealthSystem,CombatSystem, Render).inAnyOrderWith(InventorySystem))
 export class ThinkSystem extends System {
     thinkers = this.query(
         (q) => q.with(BrainComponent, GameEntityComponent).added.current.write
@@ -72,21 +49,3 @@ export class ThinkSystem extends System {
     }
 }
 
-// @system(s => s.before(EntityManagerSystem, ThinkSystem, HealthSystem))
-@system((s) => s.after(ThinkSystem).afterWritersOf(BrainComponent))
-export class HealthSystem extends System {
-    entities = this.query(
-        (q) =>
-            q.with(BrainComponent, Health, GameEntityComponent, PositionComponent)
-                .added.read
-    );
-
-    checkable = this.query((q) => q.using(Healing, Target).read);
-
-    execute() {
-        for (const entity of this.entities.added) {
-            const brain = entity.read(BrainComponent).object;
-            brain.addEvaluator(new GetHealthEvaluator(1, Healing));
-        }
-    }
-}
