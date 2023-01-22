@@ -53,7 +53,7 @@ class FollowPathGoal extends Goal<any> {
 
     const path = owner.components.read(componentRegistry.PathComponent).path;
 
-    if (path !== null) {
+    if (path !== null && path.length > 0) {
       // update path and steering
 
       let followPathBehavior;
@@ -88,14 +88,20 @@ class FollowPathGoal extends Goal<any> {
   }
 
   execute() {
+    const owner = this.owner;
     if (!this.to) {
         this.status = Goal.STATUS.FAILED;
         return;
     }
 
+    const path = owner.components.read(componentRegistry.PathComponent).path;
+
+    if (!path) {
+        this.status = Goal.STATUS.FAILED;
+        return;
+    }
 
     if (this.active()) {
-      const owner = this.owner;
 
       const squareDistance = owner.position.squaredDistanceTo(this.to);
       // if (owner.atPosition(this.to)) {

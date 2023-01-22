@@ -1,7 +1,7 @@
 import * as React from "react";
 import {EntityList} from "./EntityList";
 import {useContext, useEffect} from "react";
-import { RenderContext} from "./GameWorldWrapper";
+// import { RenderContext} from "./GameWorldWrapper";
 import {Entity} from "@lastolivegames/becsy";
 
 import {useEcsStore, useSystem} from 'react-becsy'
@@ -22,7 +22,8 @@ export const EntityListPanel = () => {
 
     // const world = useContext(ECSContext);
     // const world = useContext(GameWorldContext);
-    const world = useEcsStore().ecs;
+    const ecs = useEcsStore(state => state.ecs);
+    // const world = useEcsStore().ecs;
     const render = useSystem(Render) as Render
     // const render = useContext(RenderContext);
 
@@ -33,20 +34,20 @@ export const EntityListPanel = () => {
             // this.setState(prevState => ({selected: [...prevState.selected, event.target.value]}))
             // this.props.parent.selected.push(event.target.value)
 
-            const prev = selected;
-            prev.push(type);
+            // const prev = selected;
+            // prev.push(type);
             // this.props.parent.selected = prev;
             // this.setState({ selected: prev });
-            setSelected(prev);
+            setSelected(prevState => [...prevState, type]);
 
             // }
         } else {
-            const newSel = selected.filter(
-                (e: any) => e !== type
-            );
+            // const newSel = selected.filter(
+            //     (e: any) => e !== type
+            // );
             // this.props.parent.selected = newSel;
             // this.setState({ selected: newSel });
-            setSelected(newSel);
+            setSelected(prevState => prevState.filter((e: any) => e !== type));
             // this.setState(prevState => ({selected: prevState.selected.filter(day => day !== event.target.value)}));
             // this.props.parent.selected = this.props.parent.selected.filter((e: any) => e !== event.target.value)
         }
@@ -56,9 +57,10 @@ export const EntityListPanel = () => {
 
     const listTypes = () => {
         // console.log(selected)
+        // const world = ecsStore?.ecs;
         try {
             //@ts-ignore
-            return world?.world?.__dispatcher.registry.types
+            return ecs.world?.__dispatcher.registry.types
                 .filter((type: any) => type.name !== "Alive")
                 .map((e: any) => (
                     <p key={e.name}>
@@ -76,10 +78,6 @@ export const EntityListPanel = () => {
         } catch (e) {
         }
     }
-
-    useEffect(() => {
-        listTypes();
-    }, [render, selected]);
 
     return (
         <div>

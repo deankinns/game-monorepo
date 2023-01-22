@@ -1,4 +1,5 @@
-import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState} from "react";
+// @ts-ignore
+import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState, memo} from "react";
 import {NoiseGenerator} from "./util/noise";
 import {Box2, Vector2, Vector3} from "three";
 import {useFrame, useThree} from "@react-three/fiber";
@@ -7,7 +8,7 @@ import {HeightGenerator} from "./util/HeightGenerator";
 import {TerrainChunk} from "./TerrainChunk";
 import {RigidBody} from "@react-three/rapier";
 
-const TerrainBlock = forwardRef((
+const TerrainBlock = memo(forwardRef((
     {
         seed = 1,
         wireframe = true,
@@ -37,7 +38,7 @@ const TerrainBlock = forwardRef((
         lacunarity,
         scale,
         exponentiation
-    }),[seed, height, octaves, persistence, lacunarity, scale, exponentiation]);
+    }), [seed, height, octaves, persistence, lacunarity, scale, exponentiation]);
 
     const CellIndex = (p: Vector3, cellSize: number): number[] => {
         const xp = p.x + cellSize * 0.5;
@@ -52,10 +53,10 @@ const TerrainBlock = forwardRef((
     const [camera] = useThree((state) => [state.camera]);
     useFrame(({camera, controls}) => {
 
-        const newIndex = CellIndex(camera.position, 100);
+        const newIndex = CellIndex(camera.position, 10);
 
         if (newIndex[0] !== camIndex[0] || newIndex[1] !== camIndex[1]) {
-            setCamIndex(CellIndex(camera.position, 100));
+            setCamIndex(CellIndex(camera.position, 10));
 
         }
         // camera
@@ -83,7 +84,7 @@ const TerrainBlock = forwardRef((
         const q = new QuadTree({
             min: new Vector2(-width, -width),
             max: new Vector2(width, width),
-            minNodeSize: 10,
+            minNodeSize: 1,
         });
         q.Insert(position);
 
@@ -131,7 +132,7 @@ const TerrainBlock = forwardRef((
         // }
 
         chunks.current = children;
-        setLastBuild(Date.now());
+        // setLastBuild(Date.now());
     }
     //
     // const CreateTerrainChunk = (offset: Vector2, size: number) => {
@@ -147,22 +148,30 @@ const TerrainBlock = forwardRef((
         return {groupRef, noise, width, height, chunks};
     });
 
-    return <>
-    {/*<RigidBody type={'fixed'} colliders={false} position={position} ccd={true}>*/}
-        <group ref={groupRef} /*position={position}*/ onClick={onClick} onContextMenu={onContextMenu}>
-            {chunks.current.map((chunk: any) => <TerrainChunk
-                key={`${chunk.center.x}/${chunk.center.y} [${chunk.bounds.getSize(new Vector2()).x}]`}
-                wireframe={wireframe}
-                offset={chunk.center}
-                width={chunk.size.x}
-                resolution={chunk.size.x < 500 ? 64 : 32}
-                noise={chunk.noise}
-                build={lastBuild}
-            />)}
-        </group>
-    {/*</RigidBody>*/}
-        </>
-})
+
+
+    return <group ref={groupRef} /*position={position}*/ onClick={onClick} onContextMenu={onContextMenu}>
+        {chunks.current.map((chunk: any) => <TerrainChunk
+            key={`${chunk.center.x}/${chunk.center.y} [${chunk.bounds.getSize(new Vector2()).x}]`}
+            wireframe={wireframe}
+            offset={chunk.center}
+            width={chunk.size.x}
+            resolution={32}
+            noise={chunk.noise}
+            build={lastBuild}
+        />)}
+    </group>;
+
+})/*, (prevProps, nextProps) => {
+    return prevProps.seed === nextProps.seed &&
+        prevProps.height === nextProps.height &&
+        prevProps.width === nextProps.width &&
+        prevProps.octaves === nextProps.octaves &&
+        prevProps.persistence === nextProps.persistence &&
+        prevProps.lacunarity === nextProps.lacunarity &&
+        prevProps.scale === nextProps.scale &&
+        prevProps.exponentiation === nextProps.exponentiation
+}*/);
 
 TerrainBlock.displayName = 'TerrainBlock';
 

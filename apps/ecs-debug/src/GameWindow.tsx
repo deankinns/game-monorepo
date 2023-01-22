@@ -1,6 +1,6 @@
 import * as React from "react";
 import {GameWorld, RenderComponent, EventSystem, Render} from "becsy-package";
-import {EntityListPanel, RenderContext} from "becsy-ui";
+import {EntityListPanel} from "becsy-ui";
 import {createRef, useContext, useEffect, useRef, useState,} from "react";
 
 import {useEcsStore,  useECSStore} from "react-becsy";
@@ -86,9 +86,9 @@ export const GameWindow = (props: any) => {
         <Counter/>
         <Toolbar/>
         <div>hello</div>
-        <RenderContext.Provider value={render}>
+        {/*<RenderContext.Provider value={render}>*/}
             <EntityListPanel/>
-        </RenderContext.Provider>
+        {/*</RenderContext.Provider>*/}
     </>
 }
 

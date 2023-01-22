@@ -7,8 +7,10 @@ import {RenderComponent, ToBeDeleted} from "becsy-package";
 import {ComponentPanel} from "./ComponentPanel";
 import {EntityList} from "./EntityList";
 import {ComponentList} from "./ComponentList";
-import {GameWorldContext} from "./GameWorldWrapper";
-import {ECSContext, useEcsStore} from "react-becsy";
+// import {GameWorldContext} from "./GameWorldWrapper";
+import {useEcsStore, useSystem} from "react-becsy";
+
+import {Deleter} from 'becsy-package'
 
 let components = [];
 
@@ -42,12 +44,14 @@ export const EntityPanel = ({entity}: { entity: Entity }) => {
 
     // const world = useContext(GameWorldContext);
     // const world = useContext(ECSContext);
-    const world = useEcsStore().ecs
+    const [world, selectEntity] = useEcsStore(state => [state.ecs, state.selectEntity])
     // const [has, setHas] = React.useState([]);
     // const [hasNot, setHasNot] = React.useState([]);
     const [show, setShow] = React.useState(false);
 
     const [component, setComponent] = React.useState("Select");
+
+    const deleterSystem = useSystem(Deleter)  as Deleter;
 
     // const types = useRef()
 
@@ -134,12 +138,13 @@ export const EntityPanel = ({entity}: { entity: Entity }) => {
     }
 
     const deleteEntity = () => {
-        world?.enqueueAction(
-            (sys, entity) => {
-                entity?.delete();
-            },
-            entity
-        );
+        // world?.enqueueAction(
+        //     (sys, entity) => {
+        //         entity?.delete();
+        //     },
+        //     entity
+        // );
+        deleterSystem?.deleteEntity(entity);
     }
 
     //
@@ -179,6 +184,7 @@ export const EntityPanel = ({entity}: { entity: Entity }) => {
                     <button onClick={() => setShow(!show) /*this.setState({ show: !this.state.show })*/}>
                         {show ? "hide" : "show"}
                     </button>
+                    <button onClick={() => selectEntity(entity)}>select</button>
                 </div>
 
                 {show ? <ComponentList components={has} entity={entity}/> : null}

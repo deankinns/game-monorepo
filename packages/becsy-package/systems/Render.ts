@@ -1,4 +1,4 @@
-import {Entity, System, system} from "@lastolivegames/becsy";
+import {Entity, System, system, co} from "@lastolivegames/becsy";
 import {useEcsStore} from "react-becsy";
 import {Keyboard, RenderComponent} from "../components";
 import {Deleter} from "./Deleter";
@@ -18,12 +18,16 @@ export class Render extends System {
 
     private readonly keysPressed = new Set<string>();
 
+    state:any = null;
+
     async prepare() {
         if (this.reference) {
             this.reference.current = this;
         }
         // useEcsStore.setState({systems: {...useEcsStore.getState().systems, Render: this}});
-        useEcsStore.getState().addSystem(this);
+        // useEcsStore.getState().addSystem(this);
+        this.state = useEcsStore.getState();
+        // this.state.addSystem(this);
   //  }
 
  //   initialize(): void {
@@ -57,6 +61,20 @@ export class Render extends System {
         //   }
         // });
 
+        // if (this.state) {
+        //     for (const entity of this.items.added) {
+        //         // this.state?.addEntity(entity.hold());
+        //         this.state.addEntity();
+        //     }
+        //
+        //     this.accessRecentlyDeletedData(true)
+        //
+        //     for (const entity of this.items.removed) {
+        //         this.state.removeEntity();
+        //     }
+        // }
+
+
         // this.reference.current = this.items.current;
 
         // this.show = this.items.current.filter((item) =>
@@ -80,5 +98,13 @@ export class Render extends System {
         this.cblist.forEach((cb) => {
             cb(system)
         })
+    }
+
+    @co *newEntity() {
+        co.cancelIfCoroutineStarted();
+
+        yield co.waitForFrames(1);
+        this.createEntity(RenderComponent, {name: "something"});
+        yield co.waitForFrames(1);
     }
 }

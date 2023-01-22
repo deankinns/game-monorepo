@@ -1,7 +1,7 @@
 import {field, component, Type} from '@lastolivegames/becsy';
-import {Mesh} from "three";
+import {Object3D} from "three";
 
 @component
-export class MeshComponent {
-    @field(Type.object) declare mesh: Mesh;
+export class Object3DComponent {
+    @field(Type.object) declare object: Object3D;
 }

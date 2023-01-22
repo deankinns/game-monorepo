@@ -3,17 +3,18 @@ import { Collectable, Inventory, InventorySystem, Packed } from "./Inventory";
 import { Healing, Health } from "../components/Health";
 import { EventSystem } from "./EventSystem";
 import { Deleter } from "./Deleter";
-import { ToBeDeleted } from "../components";
+import {PositionComponent, ToBeDeleted} from "../components";
 
 @system((s) =>
   s.beforeWritersOf(Healing, Health).after(EventSystem).before(Deleter)
 )
 export class HealthSystem extends System {
-  entities = this.query((q) => q.current.with(Health).current.read);
-  canHeal = this.query((q) => q.current.with(Health, Inventory).current.write);
+  entities = this.query((q) => q.without(ToBeDeleted).with(Health).current.read);
+  canHeal = this.query((q) => q.with(Health, Inventory).current.write);
+  healing = this.query((q) => q.using(PositionComponent).read.with(Healing).current.added.removed.write);
 
   writeable = this.query(
-    (q) => q.with(Healing, Collectable, ToBeDeleted).write
+    (q) => q.usingAll.write
   );
 
   execute() {
@@ -26,6 +27,7 @@ export class HealthSystem extends System {
         for (const item of inventory) {
           if (item.has(Healing)) {
             const healingItem = item.write(Healing);
+            if (!item.alive) continue
 
             if (healingItem.amount <= toHeal) {
               toHeal = healingItem.amount;
@@ -40,6 +42,8 @@ export class HealthSystem extends System {
           }
         }
       }
+
+      this.accessRecentlyDeletedData(true)
     }
   }
 }

@@ -5,6 +5,6 @@ export const Vector3ToThree = (v: { x: number, y: number, z: number }, result: T
 }
 
 
-export const QuaternionToThree = (q: { x: number, y: number, z: number, w: number }, result: THREE.Quaternion) => {
+export const QuaternionToThree = (q: { x: number, y: number, z: number, w: number }, result: THREE.Quaternion = new THREE.Quaternion) => {
     return result.set(q.x, q.y, q.z, q.w);
 }

@@ -9,6 +9,7 @@
       "es5",
       "scripthost",
       "es2020"
-    ]
+    ],
+    "target": "es5"
   }
 }

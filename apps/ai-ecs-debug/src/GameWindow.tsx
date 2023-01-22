@@ -88,26 +88,26 @@ export const GameWindow = ({id}: { id: any }) => {
     //     // setEntityManager(managerRef.current);
     //     cb(world);
     // });
-    const ecsStore = useEcsStore();
-    const ECS = ecsStore.ecs;
+    const [ecs, create, ] = useEcsStore(state => ([state.ecs, state.create]));
+    // const ECS = ecsStore.ecs;
 
     useEffect(() => {
-        ecsStore.create([
+        create([
             EntityManagerSystem, {reference: managerRef, timeMultiplier: 1}
         ], cb);
-    } , [])
+    } , [create, ecs])
 
 
     const animate = ((time: number) => {
         if (previousTimeRef.current != undefined) {
             const deltaTime = time - previousTimeRef.current;
             // worldRef.current?.execute(time, deltaTime);
-            ECS?.world?.execute(time, deltaTime);
+            ecs.world?.execute(time, deltaTime);
         }
         previousTimeRef.current = time;
         requestRef.current = requestAnimationFrame(animate);
 
-        setFrame(time);
+        // setFrame(time);
     })
 
 

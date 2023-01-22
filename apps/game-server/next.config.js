@@ -5,7 +5,8 @@ const withTM = require("next-transpile-modules")([
     "becsy-package",
     "becsy-ui",
     "yuka-package",
-    "@lastolivegames/becsy"
+    "@lastolivegames/becsy",
+    "react-becsy"
 ]);
 
 module.exports = withTM({

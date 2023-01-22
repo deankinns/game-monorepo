@@ -10,6 +10,7 @@ import {Mesh} from 'three';
 
 // const modelUrl = new URL(`../../../assets/models/AssaultRifle_01.obj`, import.meta.url).toString()
 // const modelUrl = new URL(`../../../assets/models/MK14.fbx`, import.meta.url).toString()
+// @ts-ignore
 const modelUrl = new URL(`../../../assets/models/Assault Rifle.glb`, import.meta.url).toString()
 // const textureUrl = new URL(`../../../assets/models/AssaultRifle_01.mtl`, import.meta.url).toString()
 // @ts-ignore
@@ -17,7 +18,7 @@ const modelUrl = new URL(`../../../assets/models/Assault Rifle.glb`, import.meta
 // useLoader.preload(MTLLoader, textureUrl)
 useGLTF.preload(modelUrl)
 
-export const Rifle = ({onClick = () => null}) => {
+export const Rifle = ({onClick = (ev:any) => {}}) => {
     const obj = useGLTF(modelUrl)
     const model = useMemo(() => obj.scene.clone(), [obj])
 

@@ -18,7 +18,7 @@ export class Packed {
 
 @component
 export class Inventory {
-    @field.backrefs(Packed, "holder") declare contents: Entity[];
+    @field.backrefs(Packed, "holder", true) declare contents: Entity[];
 }
 
 @component

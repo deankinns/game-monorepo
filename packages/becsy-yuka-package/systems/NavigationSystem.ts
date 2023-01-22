@@ -1,25 +1,43 @@
-import {system, System} from "@lastolivegames/becsy";
+import {co, Entity, system, System} from "@lastolivegames/becsy";
 import {
+    BrainComponent, MemoryComponent,
     NavMeshComponent,
     PathComponent,
     PathRequestComponent,
 } from "../components";
-import {Deleter, EventSystem, Render} from "becsy-package";
-import {PathPlanner, Vehicle} from "yuka-package";
+import {
+    Deleter,
+    EventSystem,
+    Inventory, InventorySystem,
+    Packed,
+    PositionComponent,
+    Render,
+    Selected,
+    Target,
+    ToBeDeleted,
+    State
+} from "becsy-package";
+import {PathPlanner, Vehicle, Vector3ToYuka, QuaternionToYuka} from "yuka-package";
 import {GameEntityComponent} from "./GameEntitySystem";
 import {Vector3} from "yuka";
 import {ThinkSystem} from "./ThinkSystem";
 import {EntityManagerComponent} from "../components/EntityManagerComponent";
+import * as THREE from "three";
 
-@system((s) => s.after(EventSystem, ThinkSystem).before(Deleter, Render))
+import {Vector3ToThree, QuaternionToThree} from "three-package"
+import {PerceptionSystem} from "./PerceptionSystem";
+
+@system((s) => s.after(EventSystem, ThinkSystem, PerceptionSystem, InventorySystem).before(Deleter, Render))
 export class NavigationSystem extends System {
     navigators = this.query(
-        (q) => q.with(PathRequestComponent, GameEntityComponent).added.current.write
+        (q) => q.with(PathRequestComponent, GameEntityComponent, PositionComponent).added.current.write
+            .using(Target, Inventory, Packed, State, Selected, ToBeDeleted, BrainComponent, MemoryComponent).write
     );
     navMeshes = this.query((q) => q.with(NavMeshComponent).added.current.write);
     running = this.query(q => q.with(PathComponent, GameEntityComponent).added.current.write.using(PathRequestComponent));
 
     entityManagerSingle = this.singleton.write(EntityManagerComponent);
+
     // pathPlanners: PathPlanner[] = [];
 
     execute() {
@@ -46,7 +64,12 @@ export class NavigationSystem extends System {
                     (owner: Vehicle, path: Vector3[]) => {
                         // entity.remove(PathRequestComponent)
                         // entity.add(PathComponent, {path: })
-                        owner.components.remove(PathRequestComponent);
+                        if (!owner.components.__valid || !owner.components.alive) return
+
+                        if (owner.components.has(PathRequestComponent)) {
+                            owner.components.remove(PathRequestComponent);
+                        }
+
 
                         if (owner.components.has(PathComponent)) {
                             const oldPath = owner.components.read(PathComponent).path;
@@ -54,7 +77,7 @@ export class NavigationSystem extends System {
                                 owner.components.write(PathComponent).path = path;
                             }
                         } else {
-                            owner.components.add(PathComponent, {path: path});
+                            owner.components.add(PathComponent, {path});
                         }
                     }
                 );
@@ -65,7 +88,7 @@ export class NavigationSystem extends System {
             const vehicle = entity.read(GameEntityComponent).entity as Vehicle;
             const path = entity.read(PathComponent).path;
 
-            if (path.length > 0 && vehicle.position.distanceTo(path[path.length-1]) < vehicle.boundingRadius) {
+            if (path.length > 0 && vehicle.position.distanceTo(path[path.length - 1]) < vehicle.boundingRadius) {
                 entity.remove(PathComponent);
             }
 
@@ -79,5 +102,35 @@ export class NavigationSystem extends System {
             const pathPlanner = entity.read(NavMeshComponent).pathPanner;
             pathPlanner?.update();
         }
+    }
+
+    @co *goTo(entity: Entity, to: THREE.Vector3) {
+        co.scope(entity);
+        co.cancelIfCoroutineStarted();
+
+        if (entity.has(Target)) {
+            entity.remove(Target);
+        }
+        const target = this.createEntity(
+            PositionComponent, {position: [to.x, to.y, to.z]},
+            Selected,
+            ToBeDeleted, {
+                condition: (entity: Entity) => {
+                    const sel = entity.read(Selected).by;
+                    for (const by of sel) {
+                        const byPos = Vector3ToThree(by.read(PositionComponent).position, new THREE.Vector3());
+                        const ePos = Vector3ToThree(entity.read(PositionComponent).position, new THREE.Vector3());
+                        // console.log(byPos.distanceTo(ePos));
+                        if (byPos.distanceTo(ePos) < 10) {
+                            by.remove(Target)
+                        }
+                    }
+
+                    return sel.length < 1;
+                }
+            });
+        entity.add(Target, {value: target});
+        yield co.waitForFrames(1);
+
     }
 }

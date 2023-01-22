@@ -51,10 +51,15 @@ function applyMixins(derivedCtor: any, constructors: any[]) {
  *
  * @author {@link https://github.com/Mugen87|Mugen87}
  */
-export class AttackGoal extends CompositeGoal<GoalSubject> {
+export class AttackGoal extends CompositeGoal<Vehicle> {
   // constructor(owner: Vehicle) {
   //   super(owner as GoalSubject);
   // }
+  // private target: GameEntity;
+
+    constructor(owner: Vehicle, private target: GameEntity) {
+      super(owner);
+    }
 
   activate() {
     // if this goal is reactivated then there may be some existing subgoals that must be removed
@@ -86,13 +91,24 @@ export class AttackGoal extends CompositeGoal<GoalSubject> {
     //   return false;
     // }
 
-    if (!owner.components.has(componentRegistry.Target)) {
+    if (
+        !owner.components.has(componentRegistry.Target)
+    ) {
     // if (!owner.AttackTarget) {
       this.status = Goal.STATUS.FAILED;
       return;
     }
 
     const target = owner.components.read(componentRegistry.Target).value
+
+    if (!target
+        || !target.has(componentRegistry.GameEntityComponent)
+        || !target.has(componentRegistry.Health)
+    ) {
+      this.status = Goal.STATUS.FAILED;
+      return;
+    }
+
     const targetVehicle = target.read(componentRegistry.GameEntityComponent).entity;
     // const target = owner.entity.read(Target).value
     // const target = owner.AttackTarget;
@@ -113,7 +129,10 @@ export class AttackGoal extends CompositeGoal<GoalSubject> {
       } else {
         // if not able to strafe, charge at the target's position
 
-        this.addSubgoal(new ChargeGoal(owner, targetVehicle));
+        if (owner.position.distanceTo(targetVehicle.position) > 10){
+          this.addSubgoal(new ChargeGoal(owner, targetVehicle));
+        }
+
       }
     } else {
       // if the target is not visible, go hunt it
@@ -132,6 +151,7 @@ export class AttackGoal extends CompositeGoal<GoalSubject> {
     // if (!owner.AttackTarget) {
     if (!owner.components.has(componentRegistry.Target)) {
       this.status = Goal.STATUS.COMPLETED;
+        return;
     } else {
       const currentSubgoal = this.currentSubgoal();
       const status = this.executeSubgoals();
@@ -146,6 +166,22 @@ export class AttackGoal extends CompositeGoal<GoalSubject> {
         this.replanIfFailed();
       }
     }
+
+    const target = owner.components.read(componentRegistry.Target).value
+    if (!target
+        || !target.has(componentRegistry.GameEntityComponent)
+        || !target.has(componentRegistry.Health)
+    ) {
+      this.status = Goal.STATUS.FAILED;
+      return;
+    }
+
+    const health = target.read(componentRegistry.Health).health
+
+    if (health < 0) {
+        this.status = Goal.STATUS.COMPLETED;
+    }
+
   }
 
   terminate() {

@@ -1,6 +1,7 @@
 import { Goal, CompositeGoal, Vector3, MemoryRecord } from "yuka";
 import { FollowPathGoal } from "./FollowPathGoal";
 import { FindPathGoal } from "./FindPathGoal";
+import {componentRegistry} from "../entities";
 // import {Memory, AIComponent, Target} from "../../becsy";
 export const Memory = () => {};
 export const Target = () => {};
@@ -24,9 +25,9 @@ class HuntGoal extends CompositeGoal<any> {
 
     // seek to the last sensed position
 
-    const memory = owner.entity.read(Memory).system;
-    const targetEntity = owner.entity.read(Target).value;
-    const target = targetEntity.read(AIComponent).object;
+    const memory = owner.components.read(componentRegistry.MemoryComponent).system;
+    const targetEntity = owner.components.read(componentRegistry.Target).value;
+    const target = targetEntity.read(componentRegistry.GameEntityComponent).entity;
 
     if (!memory.hasRecord(target)) {
       this.status = Goal.STATUS.FAILED;
@@ -72,9 +73,9 @@ class HuntGoal extends CompositeGoal<any> {
       // the bot, update the target system and consider this goal as completed
 
       if (this.completed()) {
-        const memory = owner.entity.read(Memory).system;
-        const targetEntity = owner.entity.read(Target).value;
-        const target = targetEntity.read(AIComponent).object;
+        const memory = owner.components.read(componentRegistry.MemoryComponent).system;
+        const targetEntity = owner.components.read(componentRegistry.Target).value;
+        const target = targetEntity.read(componentRegistry.GameEntityComponent).entity;
 
         memory.deleteRecord(target);
         // memory.update()

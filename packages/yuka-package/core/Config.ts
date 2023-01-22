@@ -30,7 +30,7 @@ const CONFIG = {
   BOT: {
     MOVEMENT: {
       MAX_SPEED: 3, // meter/seconds
-      DODGE_SIZE: 4, // meter
+      DODGE_SIZE: 10, // meter
     },
     GOAL: {
       UPDATE_FREQUENCY: 5, // number per seconds

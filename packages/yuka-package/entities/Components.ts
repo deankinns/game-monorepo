@@ -21,7 +21,7 @@ export const componentRegistry = {
   MemoryComponent: MemoryComponent as any,
   Weapon: Weapon as any,
   State: "State" as any,
-  Position: "Position" as any,
+  PositionComponent: "PositionComponent" as any,
   Inventory: {contents: []} as any,
   Selected: "Selected" as any,
   ToBeDeleted: "ToBeDeleted" as any,
@@ -29,10 +29,12 @@ export const componentRegistry = {
   VehicleEntityComponent: "VehicleEntityComponent" as any,
   NavMeshComponent: "NavMeshComponent" as any,
   GameEntityComponent: "GameEntityComponent" as any,
+  Command: "Command" as any,
 };
 
 export interface componentWrapperInterface {
   alive: boolean;
+  __valid: boolean;
 
   has(type: any): boolean;
 
@@ -50,6 +52,7 @@ export interface componentWrapperInterface {
 export class componentWrapper implements componentWrapperInterface {
   components: any[] = [];
   alive = true;
+  __valid = true;
 
   has(type: any): boolean {
     return this.components[type] !== undefined;

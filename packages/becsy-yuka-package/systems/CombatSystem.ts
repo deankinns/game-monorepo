@@ -2,20 +2,9 @@ import {co, Entity, system, System} from "@lastolivegames/becsy";
 import {ThinkSystem} from "./ThinkSystem";
 import {BrainComponent, MemoryComponent, PathRequestComponent, VehicleEntityComponent} from "../components";
 import {GameEntityComponent} from "./GameEntitySystem";
-import {
-    Healing,
-    Health,
-    Inventory,
-    MovingEntity, Packed,
-    PositionComponent,
-    Selected,
-    State,
-    Target,
-    Weapon
-} from "becsy-package";
-import {GetWeaponEvaluator, AttackEvaluator, GameEntity, Feature} from "yuka-package";
+import {Health, Inventory, Packed, PositionComponent, Selected, State, Target, Weapon} from "becsy-package";
+import {AttackEvaluator, GameEntity, GetWeaponEvaluator} from "yuka-package";
 import {Vehicle} from "yuka";
-import {useEcsStore, RefComponent} from "react-becsy";
 
 @system((s) => s.after(ThinkSystem).afterWritersOf(BrainComponent))
 export class CombatSystem extends System {
@@ -63,7 +52,7 @@ export class CombatSystem extends System {
     @co *updateAimAndShot(entity: Entity) {
         co.scope(entity);
 
-        co.cancelIfCoroutineStarted()
+        // co.cancelIfCoroutineStarted()
         // co.cancelIf(() => !entity.has(Target) || !entity.has(MemoryComponent));
         // yield co.waitForFrames(1);
         co.cancelIfComponentMissing(Target);
@@ -72,7 +61,7 @@ export class CombatSystem extends System {
         const targetEntity = entity.read(Target).value
         // co.cancelIf(() => !targetEntity.has(GameEntityComponent));
         if (!targetEntity || !targetEntity.has(GameEntityComponent)) {
-            return
+            return co.cancel();
         }
 
         const target = targetEntity.read(GameEntityComponent).entity;
@@ -81,8 +70,8 @@ export class CombatSystem extends System {
         if (!owner.rotateTo(target.position, this.delta, 0.1)) {
             //
             // return co.cancel();
-            // yield co.waitForFrames(1);
-            return
+            yield co.waitForFrames(1);
+            // yield co.waitForSeconds(0.5);
         }
 
 
@@ -204,7 +193,8 @@ export class CombatSystem extends System {
 
     @co *shoot(entity: Entity, target: Entity) {
         co.scope(entity);
-        co.cancelIfCoroutineStarted();
+        // co.cancelIfCoroutineStarted();
+        co.cancelIfComponentMissing(Target);
         const inventory = entity.read(Inventory).contents;
         let armed = false;
         let weapon: Entity | undefined;
@@ -218,12 +208,13 @@ export class CombatSystem extends System {
         if (!armed) {
             return;
         }
-        if (target === weapon) {
+        if (target === weapon && entity.has(Target)) {
             entity.remove(Target);
             return;
         }
 
         yield co.waitForSeconds(0.5);
+        if (!weapon || !weapon.__valid || !weapon?.has(Weapon)) return;
         const weaponComponent = weapon?.write(Weapon);
         if (weaponComponent && weaponComponent.state === 'ready') {
 
@@ -281,7 +272,10 @@ export class CombatSystem extends System {
         weaponEntity.write(Weapon).state = 'reload';
         yield
 
-        while (weaponEntity?.read(Weapon).state !== 'ready') {
+        while (
+            weaponEntity?.has(Weapon) &&
+            weaponEntity?.read(Weapon).state !== 'ready'
+            ) {
             yield
         }
 
@@ -304,7 +298,7 @@ export class CombatSystem extends System {
 
     @co *updateTarget(entity: Entity) {
         co.scope(entity);
-        co.cancelIfCoroutineStarted();
+        // co.cancelIfCoroutineStarted();
         co.cancelIf(() => entity.has(Target) || !entity.has(MemoryComponent));
         // const records = this.owner.memoryRecords;
 
@@ -338,6 +332,8 @@ export class CombatSystem extends System {
 
             }
         }
+
+        yield co.waitForFrames(1);
 
         // record selection
 
@@ -383,9 +379,15 @@ export class CombatSystem extends System {
 
         }
 
-        yield
+        yield co.waitForFrames(1);
 
-        if (selected && selected.entity && (selected.entity as GameEntity).components?.alive) {
+        if (
+            selected &&
+            selected.entity &&
+            (selected.entity as GameEntity).components?.__valid &&
+            (selected.entity as GameEntity).components?.alive &&
+            !entity.has(Target)
+        ) {
             try {
                 const t = ((selected.entity as GameEntity).components as Entity).hold();
 
@@ -403,64 +405,10 @@ export class CombatSystem extends System {
 
         }
 
-        yield
+        // yield
         // return this;
 
     }
 
 }
 
-@system(s => s.after(CombatSystem))
-export class WeaponSystem extends System {
-    weapons = this.query(q => q.using(Packed).write.with(Weapon, PositionComponent).current.write);
-
-    readable = this.query(q => q.with(Target, GameEntityComponent, RefComponent, Inventory, State).read);
-
-    async prepare() {
-        useEcsStore.getState().addSystem(this);
-    }
-
-    execute() {
-        for (const weapon of this.weapons.current) {
-            const weaponComponent = weapon.read(Weapon);
-            if (weaponComponent.state === 'fire'/* || weaponComponent.state === 'firing' || weaponComponent.state === 'cooldown'*/) {
-                this.fire(weapon.hold());
-            } else if (weaponComponent.state === 'reload'/* || weaponComponent.state === 'reloading'*/) {
-                this.reload(weapon.hold());
-            }
-        }
-    }
-
-    @co *fire(entity: Entity) {
-        co.scope(entity);
-        co.cancelIfCoroutineStarted();
-
-        // let weapon = entity.read(Weapon);
-        while (entity.read(Weapon).state !== 'ready') {
-            entity.write(Weapon).state = 'warmup';
-            yield co.waitForSeconds(entity.read(Weapon).warmUp);
-
-            entity.write(Weapon).state = 'firing';
-            yield co.waitForFrames(1);
-
-            entity.write(Weapon).state = 'cooldown';
-            entity.write(Weapon).ammo--;
-            yield co.waitForSeconds(entity.read(Weapon).coolDown);
-
-            entity.write(Weapon).state = 'ready';
-        }
-    }
-
-    @co *reload(entity: Entity) {
-        co.scope(entity);
-        co.cancelIfCoroutineStarted();
-        while (entity.read(Weapon).state !== 'ready') {
-            entity.write(Weapon).state = 'reloading';
-            yield co.waitForSeconds(entity.read(Weapon).reloadTime);
-
-            entity.write(Weapon).ammo = entity.read(Weapon).maxAmmo;
-            entity.write(Weapon).state = 'ready';
-        }
-    }
-
-}

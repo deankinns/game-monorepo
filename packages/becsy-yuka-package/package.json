@@ -8,7 +8,8 @@
     "@lastolivegames/becsy": "^0.14.3",
     "becsy-package": "*",
     "yuka": "^0.7.8",
-    "yuka-package": "*"
+    "yuka-package": "*",
+    "react-becsy": "*"
   },
   "devDependencies": {
     "@types/yuka": "^0.7.1",

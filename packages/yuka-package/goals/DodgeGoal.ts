@@ -1,6 +1,7 @@
 import { Goal, CompositeGoal, Vector3, Vehicle } from "yuka";
 import { SeekToPositionGoal } from "./SeekToPositionGoal";
 import { Feature } from "../core/Feature";
+import {componentRegistry} from "../entities";
 
 const right = new Vector3(1, 0, 0);
 const left = new Vector3(-1, 0, 0);
@@ -59,13 +60,17 @@ class DodgeGoal extends CompositeGoal<any> {
     if (this.active()) {
       const owner = this.owner;
 
+      const target = owner.components.read(componentRegistry.Target).value;
+      const targetEntity = target.read(componentRegistry.GameEntityComponent).entity;
+
       // stop executing if the traget is not visible anymore
 
-      const isTargetShootable = () => {
-        return true;
-      };
+      // const isTargetShootable = () => {
+      //   return true;
+      // };
+      // Feature.isTargetShootable(owner, isTargetShootable);
 
-      if (isTargetShootable() === false) {
+      if (Feature.isTargetShootable(owner, targetEntity) === false) {
         this.status = Goal.STATUS.COMPLETED;
       } else {
         this.status = this.executeSubgoals();

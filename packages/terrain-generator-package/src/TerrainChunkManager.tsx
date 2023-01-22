@@ -1,3 +1,4 @@
+// @ts-ignore
 import React, {forwardRef, useImperativeHandle, useState} from "react";
 import {button, useControls} from "leva";
 import TerrainBlock from "./TerrainBlock";
@@ -20,7 +21,7 @@ export const TerrainChunkManager = forwardRef(({onClick, onContextMenu}: any, re
         generate: button(() => setSeed(Date.now())),
         wireframe: false,
         height: {value: 150, max: 1000, min: 0},
-        width: {value: 100, max: 1000000, min: 100},
+        width: {value: 500, max: 1000000, min: 100},
         octaves: {value: 10, max: 20, min: 1},
         persistence: {value: 0.8, max: 1, min: 0},
         lacunarity: {value: 1.5, max: 4, min: 0.01},

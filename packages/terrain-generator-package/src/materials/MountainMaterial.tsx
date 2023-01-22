@@ -64,7 +64,7 @@ const MountainMaterial = () => {
     const {snowHeight} = useControls("Terrain", {snowHeight: 30.0});
 
     // @ts-ignore
-    return <mountainBlendMaterial tFlat={flatTexture} tSlope={slopeTexture} tSnow={snowTexture} snowHeight={snowHeight}/>;
+    return <mountainBlendMaterial opacity={0.5} tFlat={flatTexture} tSlope={slopeTexture} tSnow={snowTexture} snowHeight={snowHeight}/>;
 };
 
 export default MountainMaterial;

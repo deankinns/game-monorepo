@@ -21,7 +21,7 @@ export const v3Type = Type.vector(Type.float64, ["x", "y", "z"], Vector3);
 @component
 export class PositionComponent {
   @field.float64.vector(['x', 'y', 'z'])
-  declare position: [number, number, number] & {x: number, y: number, z: number};
+  declare position: [number, number, number] & {x: number, y: number, z: number} & Vector3;
   @field.float64.vector(['x', 'y', 'z', 'w'])
   declare rotation: [number, number, number, number] & {x: number, y: number, z: number, w: number};
 }

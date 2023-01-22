@@ -1,18 +1,21 @@
-import {Entity} from "@lastolivegames/becsy";
-import {CollisionEnterHandler, CollisionEnterPayload, RigidBody, RigidBodyApi} from "@react-three/rapier";
-import {Box, CycleRaycast, Html,Line} from "@react-three/drei";
+import {Entity, System, system, component, co, field} from "@lastolivegames/becsy";
+import {CollisionEnterHandler, CollisionEnterPayload, RigidBody, RigidBodyApi, interactionGroups} from "@react-three/rapier";
+import {Box, CycleRaycast, Html, Line} from "@react-three/drei";
 import React, {useEffect, useMemo, useRef, useState, useCallback} from "react";
-import {GameEntityComponent} from "becsy-yuka-package";
+import {GameEntityComponent, WeaponSystem, CombatSystem} from "becsy-yuka-package";
 import {Rifle as Model} from 'fiber-package'
 import {useFrame} from "@react-three/fiber";
 import {Vector3ToYuka, QuaternionToYuka} from 'yuka-package'
-import {Health, Packed, PositionComponent, Target, Weapon} from "becsy-package";
+import {Health, Packed, PositionComponent, Target, Weapon, Projectile, ToBeDeleted, Deleter} from "becsy-package";
 import {Vector3, Quaternion, Mesh, Euler, Group, BufferGeometry, Ray} from "three";
-import {RefComponent, useEcsStore} from "react-becsy";
+import {RefComponent, useEcsStore, useSystem} from "react-becsy";
 import {button, useControls} from "leva";
+import {PhysicsSystem} from "becsy-fiber"
+
 
 import create, {SetState} from 'zustand'
 import {Vector3ToThree} from "three-package";
+import {createConvexRegionHelper} from "three-yuka-package";
 
 interface Bullet {
     position: Vector3,
@@ -33,64 +36,75 @@ const useBulletStore = create<BulletState>((set: SetState<any>, get) => ({
     setBullets: (bullets: any) => set({bullets})
 }))
 
-export const Rifle = (props: { entity: Entity; onClick: any; position?: any }) => {
+export const Rifle = (props: { entity: Entity;  }) => {
     const bodyRef = useRef<RigidBodyApi>(null);
     const ref = useRef<Group>(null);
 
-    const gameEntity = /*useMemo(() =>*/ props.entity.write(GameEntityComponent).entity/*, [props.entity]);*/
+    // const gameEntity = /*useMemo(() =>*/ props.entity.write(GameEntityComponent).entity/*, [props.entity]);*/
     // const weaponComponent = props.entity.read(Weapon);
-    const [packed, setPacked] = useState<boolean>(false);
-    const [over, setOver] = useState<boolean>(false);
+    // const [packed, setPacked] = useState<boolean>(false);
+    // const [over, setOver] = useState<boolean>(false);
 
     // const ammo = useRef(0)
-    const [projectiles, setProjectiles] = useState<any[]>([])
+    // const [projectiles, setProjectiles] = useState<any[]>([])
 
-    const ecs = useEcsStore().ecs;
+    // const ecs = useEcsStore().ecs;
 
-    const bulletStore = useBulletStore()
 
-    const pos = new Vector3();
-    const dir = new Vector3();
-    const ray = new Ray()
+
+    const weaponSystem = useSystem(WeaponSystem) as WeaponSystem;
+    const physicsSystem = useSystem(PhysicsSystem) as PhysicsSystem;
+    const selectEntity = useEcsStore((state) => state.selectEntity);
+
+    // const addBullet = useBulletStore(state => state.addBullet)
+
+    // const pos = new Vector3();
+    // const dir = new Vector3();
+    // const ray = new Ray()
 
     useFrame((state, delta, frame) => {
-        if (!bodyRef.current) return
+        if (
+            !props.entity.__valid || !props.entity.alive ||
+            !bodyRef.current || !props.entity.has(GameEntityComponent)
+        ) return
 
-        if (packed !== props.entity.has(Packed)) {
-            setPacked(() => props.entity.has(Packed));
-        }
+        // if (packed !== props.entity.has(Packed)) {
+        //     setPacked(prev => packed);
+        // }
 
-        if (packed) {
-            const holder = props.entity.read(Packed).holder;
-            if (!holder || !holder.alive || !holder.has(RefComponent)) return setPacked(false);
-            const r = holder.read(RefComponent).ref
-            if (!r || !r.current) return
+        // if (props.entity.has(Packed)) {
+        //     const holder = props.entity.read(Packed).holder;
+        //     if (!holder || !holder.alive || !holder.has(RefComponent)) return setPacked(false);
+        //     const r = holder.read(RefComponent).ref
+        //     if (!r || !r.current) return
+        //
+        //     const {hand, head, obj} = r.current;
+        //
+        //     if (!hand || !head || !obj) return
+        //
+        //     const v1 = new Vector3();
+        //     hand.getWorldPosition(v1);
+        //
+        //     const q1 = new Quaternion();
+        //     obj?.getWorldQuaternion(q1);
+        //
+        //     const e = new Euler().setFromQuaternion(bodyRef.current.rotation(), 'XYZ')
+        //     v1.add(new Vector3(.07, .15, .8).applyEuler(e))
+        //
+        //     bodyRef.current.setTranslation(v1);
+        //     bodyRef.current.setRotation(q1);
+        //     bodyRef.current.lockRotations(true)
+        //     bodyRef.current.lockTranslations(true)
+        // } else {
+        //
+        //     bodyRef.current.lockRotations(false)
+        //     bodyRef.current.lockTranslations(false)
+        // }
 
-            const {hand, head, obj} = r.current;
+        // const gameEntity = props.entity.write(GameEntityComponent).entity
 
-            if (!hand || !head || !obj) return
-
-            const v1 = new Vector3();
-            hand.getWorldPosition(v1);
-
-            const q1 = new Quaternion();
-            obj?.getWorldQuaternion(q1);
-
-            const e = new Euler().setFromQuaternion(bodyRef.current.rotation(), 'XYZ')
-            v1.add(new Vector3(.07, .15, .8).applyEuler(e))
-
-            bodyRef.current.setTranslation(v1);
-            bodyRef.current.setRotation(q1);
-            bodyRef.current.lockRotations(true)
-            bodyRef.current.lockTranslations(true)
-        } else {
-
-            bodyRef.current.lockRotations(false)
-            bodyRef.current.lockTranslations(false)
-        }
-
-        Vector3ToYuka(bodyRef.current?.translation(), gameEntity.position)
-        QuaternionToYuka(bodyRef.current?.rotation(), gameEntity.rotation);
+        // Vector3ToYuka(bodyRef.current?.translation(), gameEntity.position)
+        // QuaternionToYuka(bodyRef.current?.rotation(), gameEntity.rotation);
 
         // gameEntity.rotateTo(gameEntity.position, new Vector3(0, 0, 0))
         // if (packed) {
@@ -103,10 +117,10 @@ export const Rifle = (props: { entity: Entity; onClick: any; position?: any }) =
         //
         // }
 
-        ref.current?.getWorldPosition(pos);
-        ref.current?.getWorldDirection(dir);
+        // ref.current?.getWorldPosition(pos);
+        // ref.current?.getWorldDirection(dir);
 
-        ray.set(pos, dir)
+        // ray.set(pos, dir)
 
         // state.raycaster.set(pos, dir);
         //
@@ -119,11 +133,23 @@ export const Rifle = (props: { entity: Entity; onClick: any; position?: any }) =
         //     }
         // }
 
-        if (props.entity.read(Weapon).state === 'firing') {
+        if (props.entity.has(Weapon) && props.entity.read(Weapon).state === 'firing') {
             // props.entity.write(Weapon).ammo = 0
             fire();
         }
+
     })
+
+    useEffect(() => {
+        // const gameEntity = props.entity.write(GameEntityComponent).entity
+        // new Vector3(gameEntity.position.x, gameEntity.position.y, gameEntity.position.z));
+        if (bodyRef.current) {
+            bodyRef.current.setTranslation(props.entity.read(PositionComponent).position);
+            physicsSystem.addBody(props.entity, bodyRef.current);
+        }
+
+
+    }, [physicsSystem, props.entity]);
 
     const reload = () => {
         // ammo.current = 10
@@ -134,18 +160,23 @@ export const Rifle = (props: { entity: Entity; onClick: any; position?: any }) =
         //         ammo.current = maxAmmo
         //     }
         // }, props.entity)
-        const weapon = props.entity.write(Weapon);
-        weapon.ammo = weapon.maxAmmo;
+        // const weapon = props.entity.write(Weapon);
+        // weapon.ammo = weapon.maxAmmo;
+
+        if (props.entity.read(Weapon).state !== 'ready') return
+        weaponSystem.reload(props.entity)
     }
     const fire = () => {
+        if (props.entity.read(Weapon).state !== 'ready') return
+        weaponSystem.fire(props.entity)
         // const ammo = props.entity.read(Weapon).ammo
 
         // const weapon = props.entity.write(Weapon)
-        if (!bodyRef.current) return
-        bulletStore.addBullet({
-            position: bodyRef.current.translation().clone(),
-            rotation: bodyRef.current.rotation().clone()
-        })
+        // if (!bodyRef.current) return
+        // addBullet({
+        //     position: bodyRef.current.translation().clone(),
+        //     rotation: bodyRef.current.rotation().clone()
+        // })
         // setProjectiles(prev => [...prev, Date.now()])
 
 
@@ -181,27 +212,37 @@ export const Rifle = (props: { entity: Entity; onClick: any; position?: any }) =
     //
     // const lineGeometry = new BufferGeometry().setFromPoints(points)
 
+
     return <>
         <RigidBody
             type={"dynamic"}
             ref={bodyRef}
-            position={[
-                gameEntity.position.x,
-                gameEntity.position.y,
-                gameEntity.position.z,
-            ]}
+            // position={[
+            //     gameEntity.position.x,
+            //     gameEntity.position.y,
+            //     gameEntity.position.z,
+            // ]}
+            collisionGroups={interactionGroups([2], [0])}
         >
             <group ref={ref}>
-            <Html>
-                <p>{props.entity.read(Weapon).state}</p>
-                <p>Ammo:&nbsp;{props.entity.read(Weapon).ammo}</p>
-                <button onClick={fire}>Fire</button>
-            </Html>
-            <Model
-                // ref={modelRef}
-                onClick={props.onClick}
-            />
-            <Line points={[[0,0,0],[0,0,10]]} color={over ? 'white': 'black'} />
+                {/*<Html>*/}
+                {/*    <div style={{fontSize: 'xx-small'}}>*/}
+                {/*        <div className="w3-panel w3-white">*/}
+                {/*            <p>{props.entity.read(Weapon).state}</p>*/}
+                {/*            <p>Ammo:&nbsp;{props.entity.read(Weapon).ammo}</p>*/}
+                {/*        </div>*/}
+                {/*        <button className={'w3-tiny'} onClick={fire}>Fire</button>*/}
+                {/*        <button className={'w3-tiny'} onClick={reload}>Reload</button>*/}
+                {/*    </div>*/}
+                {/*</Html>*/}
+                <Model
+                    // ref={modelRef}
+                    onClick={ev => {
+                        selectEntity(props.entity);
+                        ev.stopPropagation();
+                    }}
+                />
+                {/*<Line points={[[0, 0, 0], [0, 0, 10]]} color={over ? 'white' : 'black'}/>*/}
             </group>
         </RigidBody>
         {/*{projectiles.map((p, i) => <Bullet*/}
@@ -212,80 +253,131 @@ export const Rifle = (props: { entity: Entity; onClick: any; position?: any }) =
     </>
 }
 
-const Bullet = ({position, rotation}: any) => {
-    const e = new Euler().setFromQuaternion(rotation, 'XYZ')
+const q = new Quaternion();
+const p = new Vector3();
+
+export const Bullet = ({entity}: any) => {
+
+    if (!entity.has(PositionComponent)) return null
+
+    const {position, rotation} = entity.read(PositionComponent)
+
+    q.set(rotation.x, rotation.y, rotation.z, rotation.w)
+    p.set(position.x, position.y, position.z)
+
+    const e = new Euler().setFromQuaternion(q, 'XYZ')
     const v1 = new Vector3(0, 0, 1).applyEuler(e);
-    position.add(v1)
-    const v = v1.clone().multiplyScalar(100)
-    const age = useRef(0)
+    p.add(v1)
+    const v = v1.clone().multiplyScalar(500)
+    // const age = useRef(0)
+    //
+    // const removeBullet = useBulletStore(state => state.removeBullet)
 
-    const removeBullet = useBulletStore(state => state.removeBullet)
-
-    useFrame((state, delta, frame) => {
-        age.current += delta
-        if (age.current > 10) {
-            removeBullet({position, rotation})
-        }
-        // position.add(v)
-    })
+    // useFrame((state, delta, frame) => {
+    //     age.current += delta
+    //     if (age.current > 10) {
+    //         removeBullet({position, rotation})
+    //     }
+    //     // position.add(v)
+    // })
 
 
-    return <>
-        <RigidBody
-            userData={{type: 'bullet'}}
-            position={[position.x, position.y, position.z]}
-            rotation={[e.x, e.y, e.z]}
-            linearVelocity={[v.x, v.y, v.z]}
-            ccd={true}
-            onCollisionEnter={({ manifold, target, other }) => {
-                console.log(
-                    "Collision at world position ",
-                    manifold.solverContactPoint(0)
-                );
+    return <RigidBody
+        userData={{entity}}
+        position={[position.x, position.y, position.z]}
+        rotation={[e.x, e.y, e.z]}
+        linearVelocity={[v.x, v.y, v.z]}
+        ccd={true}
+        onCollisionEnter={({manifold, target, other}) => {
+            // console.log(
+            //     "Collision at world position ",
+            //     manifold.solverContactPoint(0)
+            // );
 
-                if (other.rigidBodyObject) {
-                    console.log(
-                        // this rigid body's Object3D
-                        target.rigidBodyObject?.name,
-                        " collided with ",
-                        // the other rigid body's Object3D
-                        other.rigidBodyObject.name
-                    );
+            if (other.rigidBodyObject && other.rigidBodyObject.userData.entity) {
+                // console.log(
+                //     // this rigid body's Object3D
+                //     target.rigidBodyObject?.name,
+                //     " collided with ",
+                //     // the other rigid body's Object3D
+                //     other.rigidBodyObject.name
+                // );
 
-                    if (other.rigidBodyObject.userData.entity.has(Health)) {
-                        other.rigidBodyObject.userData.entity.write(Health).health -= 10
-                    }
+                if (other.rigidBodyObject.userData.entity.has(Health)) {
+                    other.rigidBodyObject.userData.entity.write(Health).health -= 10
                 }
-            }}
-        >
-            <Box args={[.1, .1, .1]}/>
-        </RigidBody>
-        <axesHelper args={[1]} position={position} rotation={rotation}/>
-    </>
+            }
+        }}
+    >
+        <Box args={[.1, .1, .1]}/>
+    </RigidBody>
+
 }
+//
+// export const BulletWrapper = () => {
+//     // const bulletStore = useBulletStore()
+//     //
+//     // useFrame((state, delta, frame) => {
+//     //     // for (const bullet of bulletStore.bullets) {
+//     //     //     if (Date.now() - bullet.createdAt > 1000) {
+//     //     //         bulletStore.removeBullet(bullet)
+//     //     //     }
+//     //     // }
+//     //     const date = Date.now()
+//     //     // bulletStore.setBullets(bulletStore.bullets.filter(b => {
+//     //     //     return (date - b.createdAt > 5000)
+//     //     // }))
+//     // })
+//     //
+//     //
+//     // return <>
+//     //     {bulletStore.bullets.map((b, i) => <Bullet
+//     //         key={i}
+//     //         position={b.position}
+//     //         rotation={b.rotation}
+//     //     />)}
+//     // </>
+//     const bulletSystem = useSystem(BulletSystem) as BulletSystem
+//     const [items, setItems] = useState<Entity[]>([]);
+//     // const items = useMemo(() => debug ? [] : entityManagerSystem.entities.current, [debug, entityManagerSystem.entities]);
+//     useFrame(() => {
+//         if (items.length !== bulletSystem.bullets.current.length) {
+//             setItems(bulletSystem.bullets.current);
+//         }
+//     })
+//
+//
+//     // const count = useEcsStore(state => state.count)
+//
+//     return <>
+//         {items.map((bullet) => {
+//             const {position, rotation} = bullet.read(PositionComponent);
+//
+//             return <Bullet
+//                 key={bullet.__id}
+//                 position={new Vector3(position.x, position.y, position.z)}
+//                 rotation={new Quaternion(rotation.x, rotation.y, rotation.z, rotation.w)}
+//             />
+//         })}
+//     </>
+//
+// }
 
-export const BulletWrapper = () => {
-    const bulletStore = useBulletStore()
 
-    useFrame((state, delta, frame) => {
-        // for (const bullet of bulletStore.bullets) {
-        //     if (Date.now() - bullet.createdAt > 1000) {
-        //         bulletStore.removeBullet(bullet)
-        //     }
-        // }
-        const date = Date.now()
-        // bulletStore.setBullets(bulletStore.bullets.filter(b => {
-        //     return (date - b.createdAt > 5000)
-        // }))
-    })
+@system(s => s.after(CombatSystem, WeaponSystem).inAnyOrderWith(Deleter,PhysicsSystem))
+export class BulletSystem extends System {
+    bullets = this.query(q => q.with(Projectile).added.removed.current.write.using(ToBeDeleted).write)
 
+    execute() {
+        for (const bullet of this.bullets.added) {
+            this.removeBullet(bullet.hold())
+        }
+    }
 
-    return <>
-        {bulletStore.bullets.map((b, i) => <Bullet
-            key={i}
-            position={b.position}
-            rotation={b.rotation}
-        />)}
-    </>
+    @co *removeBullet(bullet: Entity) {
+        co.scope(bullet)
+        yield co.waitForSeconds(10)
+
+        bullet.add(ToBeDeleted)
+    }
 }
-

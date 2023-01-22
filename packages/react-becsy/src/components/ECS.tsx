@@ -16,12 +16,12 @@ export class ECS {
     world: World | undefined;
     actions: any[] = [];
 
-    constructor() {
-        this.update = this.update.bind(this);
-        // this.Provider = this.Provider.bind(this);
-        this.enqueueAction = this.enqueueAction.bind(this);
-
-    }
+    // constructor() {
+    //     this.update = this.update.bind(this);
+    //     // this.Provider = this.Provider.bind(this);
+    //     this.enqueueAction = this.enqueueAction.bind(this);
+    //
+    // }
 
     async init(
         systems: (System | any)[] = [],

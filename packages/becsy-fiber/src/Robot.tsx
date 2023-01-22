@@ -1,5 +1,15 @@
 import {Entity, System} from "@lastolivegames/becsy";
-import React, {forwardRef, Ref, Suspense, useContext, useEffect, useImperativeHandle, useMemo, useRef} from "react";
+import React, {
+    forwardRef,
+    Ref,
+    Suspense,
+    useContext,
+    useEffect,
+    useImperativeHandle,
+    useMemo,
+    useRef,
+    memo, useState
+} from "react";
 import * as THREE from "three";
 import {useFrame} from "@react-three/fiber";
 import {Box, Html, Sphere} from "@react-three/drei";
@@ -9,32 +19,37 @@ import {
     Debug,
     BallCollider,
     RigidBodyApi,
-    useRevoluteJoint
+    useRevoluteJoint,
+    interactionGroups
 } from "@react-three/rapier";
 import {Dummy} from "fiber-package";
-import {GameEntityComponent, Vehicle} from 'becsy-yuka-package';
+import {GameEntityComponent, Vehicle, BrainComponent} from 'becsy-yuka-package';
 import {Vector3ToThree, QuaternionToThree} from 'three-package'
-import {PositionComponent, MovingEntity, State, Health, Inventory, Weapon} from 'becsy-package'
+import {PositionComponent, MovingEntity, State, Health, Inventory, Weapon, Target} from 'becsy-package'
 import {QuaternionToYuka, Vector3ToYuka, Vector3} from "yuka-package";
 import {RigidBodyApiRef} from "@react-three/rapier/dist/declarations/src/types";
-import { RefComponent, useEcsStore} from "react-becsy";
+import {RefComponent, useEcsStore, useSystem} from "react-becsy";
+import {Quaternion} from "three";
+import {EntityListPanel, EntityPanel} from "becsy-ui";
+import {PhysicsSystem} from "../systems";
 
 const UP_AXIS = new THREE.Vector3(0, 1, 0);
 const v1 = new THREE.Vector3();
 const v2 = new THREE.Vector3();
 
 
-export const Robot = (props: { entity: Entity; onClick: any; position?: any }) => {
+export const Robot = memo((props: { entity: Entity; onClick: any; position?: any }) => {
     // const ECS = useContext(ECSContext);
-    const ECS = useEcsStore().ecs;
+    // const ECS = useEcsStore().ecs;
+    const ecs = useEcsStore(state => state.ecs);
     const bodyRef = useRef<RigidBodyApi>(null);
-    const boxRef = useRef<THREE.Mesh>(null);
+    // const boxRef = useRef<THREE.Mesh>(null);
     // const vehicle = props.entity.read(GameEntityComponent).entity as Vehicle;
 
-    const vehiclePos = useMemo(() => {
-        const vehicle = props.entity.read(GameEntityComponent).entity as Vehicle;
-        return Vector3ToThree(vehicle.position, new THREE.Vector3());
-    }, []);
+    // const vehiclePos = useMemo(() => {
+    //     const vehicle = props.entity.read(GameEntityComponent).entity as Vehicle;
+    //     return Vector3ToThree(vehicle.position, new THREE.Vector3());
+    // }, [props.entity, bodyRef.current]);
     // const vehicleRot = QuaternionToThree(vehicle.rotation, new THREE.Quaternion())
 
     // const vehiclePos = useRef<THREE.Vector3>(new THREE.Vector3());
@@ -49,7 +64,8 @@ export const Robot = (props: { entity: Entity; onClick: any; position?: any }) =
     const handleRef = useRef<any>({
         head: head.current,
         hand: rHand.current,
-        obj: dummyRef.current?.group
+        obj: dummyRef.current?.group,
+        body: bodyRef.current,
     });
 
     // useImperativeHandle(handleRef, () => {
@@ -60,6 +76,8 @@ export const Robot = (props: { entity: Entity; onClick: any; position?: any }) =
     //         obj: dummyRef.current?.group
     //     }
     // }, [head.current, rHand.current, dummyRef.current])
+
+    const physicsSystem = useSystem(PhysicsSystem) as PhysicsSystem;
 
     useEffect(() => {
         if (!head.current || !rHand.current) {
@@ -76,9 +94,6 @@ export const Robot = (props: { entity: Entity; onClick: any; position?: any }) =
         // const ref = props.entity.write(RefComponent).ref
 
 
-
-
-
         if (!hand.current && rHand.current) {
             // ref.current = {
             //     head: head.current,
@@ -88,9 +103,10 @@ export const Robot = (props: { entity: Entity; onClick: any; position?: any }) =
             handleRef.current = {
                 head: head.current,
                 hand: rHand.current,
-                obj: dummyRef.current?.group
+                obj: dummyRef.current?.group,
+                body: bodyRef.current,
             }
-            ECS.enqueueAction((sys, e, {handleRef}) => {
+            ecs.enqueueAction((sys, e, {handleRef}) => {
                 if (!e) return
                 if (!e.has(RefComponent)) {
                     e.add(RefComponent, {ref: handleRef})
@@ -110,20 +126,31 @@ export const Robot = (props: { entity: Entity; onClick: any; position?: any }) =
 
         // props.entity.write(RefComponent).ref = handleRef
 
-    }, [bodyRef.current])
+
+        if (bodyRef.current) {
+            bodyRef.current.setTranslation(props.entity.read(PositionComponent).position);
+            physicsSystem.addBody(props.entity, bodyRef.current);
+        }
+
+    }, [ecs, props.entity])
 
     useFrame((state, delta, frame) => {
-
+        if (!props.entity || !props.entity.__valid || !props.entity.alive) return;
         const vehicle = props.entity.read(GameEntityComponent).entity as Vehicle;
         const {position, rotation} = props.entity.read(PositionComponent);
         // const {velocity} = props.entity.read(MovingEntity);
         const velocity = vehicle.velocity;
 
-        Vector3ToThree(position, vehiclePos)
+        // Vector3ToThree(position, vehiclePos)
 
-        if (!boxRef.current) return;
-        Vector3ToThree(position, boxRef.current.position)
-        QuaternionToThree(rotation, boxRef.current.quaternion)
+        // if (!boxRef.current) return;
+        // Vector3ToThree(position, boxRef.current.position)
+        // QuaternionToThree(rotation, boxRef.current.quaternion)
+        const q = QuaternionToThree(rotation, new THREE.Quaternion());
+
+        // v2.applyQuaternion(q)
+        // vehicle.
+        v2.set(0, 0, 1).applyQuaternion(q);
 
         if (!bodyRef.current) return;
 
@@ -132,7 +159,9 @@ export const Robot = (props: { entity: Entity; onClick: any; position?: any }) =
         // const v2 = new THREE.Vector3();
 
         dummyRef.current?.group?.getWorldDirection(v1);
-        boxRef.current?.getWorldDirection(v2);
+
+
+        // boxRef.current?.getWorldDirection(v2);
 
         const currentDir = v1.normalize().cross(UP_AXIS);
         const targetDir = v2.normalize();
@@ -153,7 +182,7 @@ export const Robot = (props: { entity: Entity; onClick: any; position?: any }) =
         newImpulse.sub(currentVel)
         newImpulse.clampLength(-1, 1)
 
-        bodyRef.current?.applyImpulse(newImpulse)
+        // bodyRef.current?.applyImpulse(newImpulse)
 
         const targetSpeed = vehicle.velocity.length()
         const speed = bodyRef.current?.linvel().length();
@@ -182,7 +211,7 @@ export const Robot = (props: { entity: Entity; onClick: any; position?: any }) =
 
         // if (speed <)
 
-        bodyRef.current?.setAngvel({x: 0, y: dot * (speed > maxSpeed * .01 ? 10 : .1), z: 0})
+        // bodyRef.current?.setAngvel({x: 0, y: dot * (speed > maxSpeed * .01 ? 10 : .1), z: 0})
         // let turnSpeed = 10;
 
         // if (currentVel.y < 0.1 && currentVel.y > -0.1) {
@@ -196,8 +225,10 @@ export const Robot = (props: { entity: Entity; onClick: any; position?: any }) =
         }
 
         if (head.current && dummyRef.current) {
-            Vector3ToYuka(head.current.getWorldPosition(new THREE.Vector3()), vehicle.position)
-            QuaternionToYuka(dummyRef.current.group.getWorldQuaternion(new THREE.Quaternion()), vehicle.rotation)
+            // Vector3ToYuka(head.current.getWorldPosition(new THREE.Vector3()), vehicle.position)
+            // QuaternionToYuka(dummyRef.current.group.getWorldQuaternion(new THREE.Quaternion()),
+            // Vector3ToYuka(bodyRef.current.translation(), vehicle.position)
+            // QuaternionToYuka(bodyRef.current.rotation(), vehicle.rotation)
         }
 
         let armed = false;
@@ -235,34 +266,75 @@ export const Robot = (props: { entity: Entity; onClick: any; position?: any }) =
     }
 
     return (
-        <>
-            <RigidBody
-                userData={{entity: props.entity}}
-                ref={bodyRef}
-                colliders={false}
-                position={[vehiclePos.x, vehiclePos.y, vehiclePos.z]}
-                enabledRotations={[false, true, false]}
-                onCollisionEnter={() => airborne.current = false}
-                onCollisionExit={() => airborne.current = true}
-            >
-                <Suspense fallback={null}>
-                    <Dummy onClick={props.onClick} ref={dummyRef}/>
-                    {/*<axesHelper args={[1]}/>*/}
-                </Suspense>
-                {/*<BallCollider args={[0.5]} position={[0, 1.1, 0]}/>*/}
-                <BallCollider args={[0.5]} position={[0, 0, 0]}/>
-                <BallCollider args={[0.5]} position={[0, -1.2, 0]}/>
-                <Html>
-                    <p>{props.entity.read(Health).health}</p>
-                </Html>
-            </RigidBody>
-            <Box ref={boxRef} args={[0, 0, 0]} position={[0, 0, 0]} rotation={[0, 0, 0]}>
-                <axesHelper args={[1]}/>
-            </Box>
+        // <>
+        <RigidBody
+            userData={{entity: props.entity}}
+            ref={bodyRef}
+            colliders={false}
+            // position={[vehiclePos.x, vehiclePos.y, vehiclePos.z]}
+            enabledRotations={[false, true, false]}
+            onCollisionEnter={() => airborne.current = false}
+            onCollisionExit={() => airborne.current = true}
+            collisionGroups={interactionGroups([1])}
+        >
+            <Suspense fallback={null}>
+                <Dummy onClick={props.onClick} ref={dummyRef}/>
+                {/*<axesHelper args={[1]}/>*/}
+            </Suspense>
+            <BallCollider args={[0.5]} position={[0, 1.1, 0]}/>
+            <BallCollider args={[0.5]} position={[0, 0, 0]}/>
+            <BallCollider args={[0.5]} position={[0, -1.2, 0]}/>
+            <Html>
+                {/*    <div className={'w3-light-grey'}>*/}
+                {/*<p>{props.entity.read(Health).health}</p>*/}
+                {/*/!*<p>{JSON.stringify(props.entity.read(BrainComponent).object?.toJSON(), undefined, 4)}</p>*!/*/}
+                <BrainInfo entity={props.entity}/>
+                {/*<EntityPanel entity={props.entity}/>*/}
+                {/*</div>*/}
+            </Html>
+        </RigidBody>
 
-        </>
+        // </>
     );
-};
+})
+Robot.displayName = 'Robot';
+
+const BrainInfo = ({entity}: { entity: Entity }) => {
+    // const brain = useStoreState(state => state.brain);
+    const brain = entity.read(BrainComponent).object;
+    // const target =
+    // const [info, setInfo] = useState('');
+
+    // const info = useRef(JSON.stringify(brain.toJSON(), undefined, 4));
+    // //
+    // useEffect(() => {
+    //         if (brain) {
+    //             // info.current = JSON.stringify(brain.toJSON(), undefined, 4);
+    //             // console.log(brain.status)
+    //             setInfo(JSON.stringify(brain.toJSON(), undefined, 4));
+    //         }
+    // },[brain, brain.status])
+
+    const [time, setTime] = useState(Date.now());
+    const [show, setShow] = useState(false);
+
+    useEffect(() => {
+        const interval = setInterval(() => setTime(Date.now()), 1000);
+        return () => {
+            clearInterval(interval);
+        };
+    }, [show]);
+
+    return (
+        <div className={'w3-light-grey'}>
+            <button className={'w3-tiny'} onClick={() => setShow(!show)}>{entity.read(Health).health}</button>
+            {show ?  <>
+                <EntityPanel entity={entity}/>
+                <pre>{JSON.stringify(brain.toJSON().subgoals, undefined, 4)}</pre>
+            </> : null}
+        </div>
+    )
+}
 
 // @ts-ignore
 const Colliders = ({position, target, children}) => {

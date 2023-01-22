@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "dependencies": {
     "@lastolivegames/becsy": "^0.14.3",
+    "@react-three/fiber": "^8.8.9",
     "react": "^18.2.0",
     "zustand": "^4.1.4"
   },

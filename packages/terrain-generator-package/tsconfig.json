@@ -4,6 +4,7 @@
   "exclude": ["node_modules"],
   "compilerOptions": {
     "module": "ES2020",
+    "esModuleInterop": true,
     "lib": [
       "dom",
       "es5",

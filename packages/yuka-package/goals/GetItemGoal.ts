@@ -79,12 +79,12 @@ class GetItemGoal extends CompositeGoal<Vehicle> {
         // owner.world.getClosestItem( owner, this.itemType, result );
 
         // this.item = result.item;
-        if (!this.item) {
-            // this.item = this.getClosestCollectable(owner);
-
-            const {result} = Feature.distanceToItem(owner, this.itemType);
-            this.item = result;
-        }
+        // if (!this.item) {
+        //     // this.item = this.getClosestCollectable(owner);
+        //
+        //     const {result} = Feature.distanceToItem(owner, this.itemType);
+        //     this.item = result;
+        // }
 
 
         if (this.item) {
@@ -203,7 +203,7 @@ class GetItemGoal extends CompositeGoal<Vehicle> {
         //     }
         // }
 
-        if (!target){
+        if (!target || target.has(componentRegistry.Packed)) {
             this.status = Goal.STATUS.FAILED;
             return;
         }
@@ -215,7 +215,7 @@ class GetItemGoal extends CompositeGoal<Vehicle> {
             // const brain = owner.components.read(componentRegistry.BrainComponent).object;
             const currentSubgoal = this.currentSubgoal();
             if (currentSubgoal instanceof FollowPathGoal) {
-                const tagertpos = target.read(componentRegistry.Position).position;
+                const tagertpos = target.read(componentRegistry.PositionComponent).position;
                 const d = currentSubgoal.to.distanceTo(new Vector3(tagertpos.x, tagertpos.y, tagertpos.z));
 
                 if (d > 10) {

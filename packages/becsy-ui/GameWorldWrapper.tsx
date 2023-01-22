@@ -7,7 +7,7 @@ import {Render, GameWorld} from "becsy-package";
 // export const GameWorldContext = React.createContext<GameWorld>(null!);
 // // export const GameWorldRefContext = React.createContext<RefObject<GameWorld | null>>(new RefObject<GameWorld | null>(null));
 //
-export const RenderContext = React.createContext<Render>(null!);
+// export const RenderContext = React.createContext<Render>(null!);
 //
 // export const GameWorldWrapper = forwardRef((
 //     {children, defs,/* world,*/ buildCallback, animate}:

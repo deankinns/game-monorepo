@@ -24,27 +24,36 @@ export class GameEntityComponent {
 }
 
 @system((s) =>
-    s.before(Deleter).beforeReadersOf(GameEntityComponent).after(EventSystem)
+    s.before(Deleter)/*.beforeReadersOf(GameEntityComponent)*/.after(EventSystem)
 )
 export class EntityManagerSystem extends System {
     // @ts-ignore
     entityManager: EntityManager = new EntityManager();
     entityManagerSingle = this.singleton.write(EntityManagerComponent);
-    reference: any;
+    // reference: any;
 
     timeMultiplier = 1;
 
     writable = this.query(q => q.usingAll.write)
 
     async prepare(): Promise<void> {
-        this.reference.current = this.entityManager
+        // this.reference.current = this.entityManager
     }
 
     initialize() {
-        this.entityManager.spatialIndex = new CellSpacePartitioning(1000, 100, 1000, 100, 10, 100);
+        // this.entityManager.spatialIndex = new CellSpacePartitioning(1000, 100, 1000, 100, 10, 100);
 
         this.entityManagerSingle.manager = this.entityManager;
+
+        // this.update()
     }
+
+    // @co *update() {
+    //     while (true) {
+    //         this.entityManager.update(this.delta / this.timeMultiplier);
+    //         yield
+    //     }
+    // }
 
     @co *processTriggers() {
         co.cancelIfCoroutineStarted();
@@ -122,7 +131,7 @@ export class EntityManagerSystem extends System {
 
                 entity.add(PositionComponent, {
                     // @ts-ignore
-                    position: [Math.random() * 100 - 50, 50, Math.random() * 100 - 50],
+                    position: [Math.random() * 1000 - 500, 50, Math.random() * 1000 - 500],
                 });
             }
 
@@ -140,9 +149,9 @@ export class EntityManagerSystem extends System {
                     entity.add(MovingComponent);
                 }
                 gameEntity = new Vehicle(entity.hold());
-                gameEntity.maxSpeed = 100;
+                gameEntity.maxSpeed = 50;
                 gameEntity.updateNeighborhood = true;
-                gameEntity.neighborhoodRadius = 100;
+                gameEntity.neighborhoodRadius = 10;
                 // gameEntity.maxTurnRate = Math.PI * .5;
             } else {
                 // continue
@@ -150,7 +159,7 @@ export class EntityManagerSystem extends System {
             }
             const {x, y, z} = entity.read(PositionComponent).position;
             gameEntity.position.set(x, y, z);
-            gameEntity.boundingRadius = 10;
+            gameEntity.boundingRadius = 2;
             gameEntity.maxTurnRate = Infinity;
             this.entityManager.add(gameEntity);
 
@@ -159,7 +168,7 @@ export class EntityManagerSystem extends System {
             entity.add(GameEntityComponent, {entity: gameEntity});
         }
 
-        this.entityManager.update(this.delta / this.timeMultiplier);
+        // this.entityManager.update(this.delta / this.timeMultiplier);
 
         for (const entity of this.entities.current) {
             const gameEntity = entity.read(GameEntityComponent).entity;
@@ -168,25 +177,29 @@ export class EntityManagerSystem extends System {
                 // this.entityManager.updateEntity(gameEntity, this.delta / this.timeMultiplier)
 
                 const position = entity.write(PositionComponent);
-                position.position.x = gameEntity.position.x;
-                position.position.y = gameEntity.position.y;
-                position.position.z = gameEntity.position.z;
+                // position.position.x = gameEntity.position.x;
+                // position.position.y = gameEntity.position.y;
+                // position.position.z = gameEntity.position.z;
+                //
+                // position.rotation.x = gameEntity.rotation.x;
+                // position.rotation.y = gameEntity.rotation.y;
+                // position.rotation.z = gameEntity.rotation.z;
+                // position.rotation.w = gameEntity.rotation.w;
+                gameEntity.position.set(position.position.x, position.position.y, position.position.z);
+                gameEntity.rotation.set(position.rotation.x, position.rotation.y, position.rotation.z, position.rotation.w);
 
-                position.rotation.x = gameEntity.rotation.x;
-                position.rotation.y = gameEntity.rotation.y;
-                position.rotation.z = gameEntity.rotation.z;
-                position.rotation.w = gameEntity.rotation.w;
-
-                if (entity.has(MovingComponent) && gameEntity instanceof Vehicle){
-                    const moving = entity.write(MovingComponent);
-                    moving.velocity.x = gameEntity.velocity.x;
-                    moving.velocity.y = gameEntity.velocity.y;
-                    moving.velocity.z = gameEntity.velocity.z;
-
-
-                }
+                // if (entity.has(MovingComponent) && gameEntity instanceof Vehicle){
+                //     const moving = entity.write(MovingComponent);
+                //     moving.velocity.x = gameEntity.velocity.x;
+                //     moving.velocity.y = gameEntity.velocity.y;
+                //     moving.velocity.z = gameEntity.velocity.z;
+                //
+                //
+                // }
+                this.entityManager.updateEntity(gameEntity, this.delta / this.timeMultiplier)
             }
         }
+        // this.entityManager.update(this.delta / this.timeMultiplier);
 
         this.accessRecentlyDeletedData(true);
 
@@ -197,7 +210,7 @@ export class EntityManagerSystem extends System {
             }
         }
 
-        // this.processTriggers();
+        this.processTriggers();
     }
 }
 

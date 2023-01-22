@@ -1,5 +1,6 @@
 import {BufferAttribute, Vector3} from "three";
-import React, {Suspense, useEffect, useRef, useState} from "react";
+// @ts-ignore
+import React, {memo, Suspense, useEffect, useRef, useState, useMemo} from "react";
 import {HeightfieldCollider, RigidBody} from "@react-three/rapier";
 import WireframeMaterial from "./materials/WireframeMaterial";
 import MountainMaterial from "./materials/MountainMaterial";
@@ -26,7 +27,7 @@ export const GenerateHeight = (v: { x: number, y: number, z: number }, noise: an
     return z;
 }
 
-export const TerrainChunk = ({wireframe = true, width = 1, offset = {x: 0, y: 0}, resolution = 1, noise}: any) => {
+export const TerrainChunk = memo(({wireframe = true, width = 1, offset = {x: 0, y: 0}, resolution = 1, noise}: any) => {
     const size = new Vector3(width, 1, width);
     const ref = useRef<any>(null);
     const [physics, setPhysics] = useState(false);
@@ -95,29 +96,25 @@ export const TerrainChunk = ({wireframe = true, width = 1, offset = {x: 0, y: 0}
         }
     }, [physics])
 
-    return <>
-        {/*<RigidBody type={'fixed'} colliders={false} position={[offset.x, 0, offset.y]}>*/}
-        <group>
-            <mesh
-                rotation={[-Math.PI / 2, 0, 0]}
-                ref={ref} position={[offset.x, 0, offset.y]}
-                userData={{type: 'terrain', points: points, resolution: resolution}}
-            >
-                <planeGeometry args={[size.x, size.z, resolution, resolution]}/>
-                <Suspense fallback={<WireframeMaterial/>}>
-                    {wireframe ? <WireframeMaterial/> : <MountainMaterial/>}
-                </Suspense>
+    return  <group>
+        <mesh
+            rotation={[-Math.PI / 2, 0, 0]}
+            ref={ref} position={[offset.x, 0, offset.y]}
+            userData={{type: 'terrain', points: points, resolution: resolution}}
+        >
+            <planeGeometry args={[size.x, size.z, resolution, resolution]}/>
 
-            </mesh>
-            {physics ? <HeightfieldCollider
-                args={[
-                    resolution, resolution, points, size
-                ]}
-                position={[offset.x, 0, offset.y]}
-                // rotation={[Math.PI / 2, 0, 0]}
-            /> : null}
-        </group>
+            <Suspense fallback={<WireframeMaterial/>}>
+                {wireframe ? <WireframeMaterial/> : <MountainMaterial/>}
+            </Suspense>
+        </mesh>
+        {physics ? <HeightfieldCollider
+            args={[
+                resolution, resolution, points, size
+            ]}
+            position={[offset.x, 0, offset.y]}
+        /> : null}
+    </group>
+})
 
-        {/*</RigidBody>*/}
-    </>
-}
+TerrainChunk.displayName = 'TerrainChunk';

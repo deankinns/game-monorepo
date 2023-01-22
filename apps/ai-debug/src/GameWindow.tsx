@@ -29,6 +29,12 @@ type World = {
   PathPlanner?: PathPlanner;
 };
 
+// @ts-ignore
+class ThinkOverride<T extends any> extends Think<T> {
+  constructor(owner: T) {
+    super(owner);
+  }
+}
 
 export class GameWindow extends React.Component<any, any> {
   manager: any;
@@ -68,8 +74,14 @@ export class GameWindow extends React.Component<any, any> {
   }
 
   addPlayer() {
+
+   // const t = new Think({    });
+   // t.addEvaluator(new ExploreEvaluator());
+   //
+   // t.arbitrate();
+
     const vehicle = new Vehicle(new componentWrapper());
-    const brain = new Think(vehicle);
+    const brain = new ThinkOverride(vehicle);
     brain.addEvaluator(new ExploreEvaluator());
     brain.addEvaluator(new GetHealthEvaluator(1, componentRegistry.Healing));
     brain.addEvaluator(new GetWeaponEvaluator(.8, componentRegistry.Weapon));

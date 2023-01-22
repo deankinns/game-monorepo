@@ -1,4 +1,4 @@
-import { System, system } from "@lastolivegames/becsy";
+import {co, Entity, System, system} from "@lastolivegames/becsy";
 import { ToBeDeleted } from "../components";
 import { Render } from "./index";
 
@@ -12,7 +12,18 @@ export class Deleter extends System {
       const del = entity.read(ToBeDeleted);
       if (!del.condition || del.condition(entity)) {
         entity.delete();
+        // this.deleteEntity(entity);
       }
     }
+  }
+
+  @co *deleteEntity(entity: Entity) {
+    co.scope(entity);
+    // co.cancelIf(() => !entity.__valid || !entity.alive);
+
+    if ( !entity.__valid || !entity.alive) return
+    entity.add(ToBeDeleted);
+    // entity.delete()
+    yield co.waitForFrames(1);
   }
 }

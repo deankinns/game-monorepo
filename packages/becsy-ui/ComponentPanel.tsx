@@ -33,7 +33,7 @@ const getCircularReplacer = () => {
 export const ComponentPanel = (props: { component: any; entity: Entity }) => {
 
   // const world = useContext(GameWorldContext)
-  const world = useEcsStore().ecs
+  const world = useEcsStore(state => state.ecs)
 
   const removeComponent = (component: any) => {
     world?.enqueueAction(

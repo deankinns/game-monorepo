@@ -26,6 +26,7 @@ class AttackEvaluator extends GoalEvaluator<Vehicle> {
 
     this.tweaker = 1; // value used to tweak the desirability
   }
+  target:GameEntity|null = null;
 
   /**
    * Calculates the desirability. It's a score between 0 and 1 representing the desirability
@@ -46,6 +47,7 @@ class AttackEvaluator extends GoalEvaluator<Vehicle> {
         owner.components.remove(componentRegistry.Target);
       } else {
         if (target.has(componentRegistry.VehicleEntityComponent)) {
+          this.target = target.read(componentRegistry.VehicleEntityComponent).value;
           desirability =
             this.tweaker *
             Feature.totalWeaponStrength(owner) *
@@ -67,11 +69,12 @@ class AttackEvaluator extends GoalEvaluator<Vehicle> {
     ).object;
 
     const currentSubgoal = brain.currentSubgoal();
+    const target = owner.components.read(componentRegistry.Target).value;
 
-    if (currentSubgoal instanceof AttackGoal === false) {
+    if (!(currentSubgoal instanceof AttackGoal) && target) {
       brain.clearSubgoals();
 
-      brain.addSubgoal(new AttackGoal(owner));
+      brain.addSubgoal(new AttackGoal(owner, target));
     }
   }
 }

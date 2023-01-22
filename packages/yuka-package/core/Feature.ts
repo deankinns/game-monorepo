@@ -56,7 +56,7 @@ export class Feature {
       const { health, maxHealth } = enemy.components.read(
         componentRegistry.Health
       );
-      return health / maxHealth;
+      return health > 0 ? health / maxHealth : 0;
     }
 
     return 0;
@@ -88,18 +88,33 @@ export class Feature {
     }
 
     if (result) {
-      let distance = minDist;
-
-      distance = MathUtils.clamp(
-        distance,
-        CONFIG.BOT.MIN_ITEM_RANGE,
-        CONFIG.BOT.MAX_ITEM_RANGE
-      );
-
-      score = distance / CONFIG.BOT.MAX_ITEM_RANGE;
+      // let distance = minDist;
+      //
+      // distance = MathUtils.clamp(
+      //   distance,
+      //   CONFIG.BOT.MIN_ITEM_RANGE,
+      //   CONFIG.BOT.MAX_ITEM_RANGE
+      // );
+      //
+      // score = distance / CONFIG.BOT.MAX_ITEM_RANGE;
+        score = Feature.distanceScore(minDist);
     }
 
     return {score, result};
+  }
+
+  static distanceScore(distance: number) {
+    distance = MathUtils.clamp(
+        distance,
+        CONFIG.BOT.MIN_ITEM_RANGE,
+        CONFIG.BOT.MAX_ITEM_RANGE
+    );
+
+    return distance / CONFIG.BOT.MAX_ITEM_RANGE;
+  }
+
+  static getClosestItem(enemy: Vehicle, itemType: any) {
+    enemy.components.has(componentRegistry.MemoryComponent);
   }
 
   static individualWeaponStrength(enemy: Vehicle, weaponType: any) {
@@ -124,7 +139,7 @@ export class Feature {
     direction: Vector3,
     position: Vector3
   ) {
-    return false
+    // return false
     position.copy(direction).applyRotation(entity.rotation).normalize();
     position
       .multiplyScalar(CONFIG.BOT.MOVEMENT.DODGE_SIZE)
@@ -137,6 +152,15 @@ export class Feature {
   }
 
   static isTargetShootable(enemy: GameEntity | MovingEntity | Vehicle, target: GameEntity | MovingEntity | Vehicle) {
-    return true;
+
+    if (!enemy.components.has(componentRegistry.MemoryComponent)) return false;
+
+    const memory = enemy.components.read(componentRegistry.MemoryComponent).system;
+
+    const record = memory.getRecord(target);
+
+    if (!record) return false;
+
+    return record.visible;
   }
 }

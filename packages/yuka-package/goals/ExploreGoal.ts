@@ -29,24 +29,28 @@ class ExploreGoal extends CompositeGoal<any> {
 
         this.clearSubgoals();
 
-        const region = owner.world?.PathPlanner.navMesh.getRandomRegion();
+        const region = owner.manager.pathPlanner.navMesh.getRandomRegion();
 
-        let to = null;
-        if (!region && owner.components.has(componentRegistry.Target)) {
-            const target = owner.components.read(componentRegistry.Target).value
-
-            to = Vector3ToYuka(target.read(componentRegistry.Position).position, new Vector3())
-
-        } else if (region) {
-            to = new Vector3().copy(region.centroid);
-        }
-
-        if (!to) {
+        if (!region) {
             this.status = Goal.STATUS.FAILED;
             return;
         }
+        // let to = null;
+        // if (!region && owner.components.has(componentRegistry.Target)) {
+        //     const target = owner.components.read(componentRegistry.Target).value
+        //
+        //     to = Vector3ToYuka(target.read(componentRegistry.Position).position, new Vector3())
+        //
+        // } else if (region) {
+        //     to = new Vector3().copy(region.centroid);
+        // }
+        //
+        // if (!to) {
+        //     this.status = Goal.STATUS.FAILED;
+        //     return;
+        // }
         const from = new Vector3().copy(owner.position);
-
+        const to = new Vector3().copy( region.centroid );
 
         // setup subgoals
 
@@ -58,6 +62,10 @@ class ExploreGoal extends CompositeGoal<any> {
         this.status = this.executeSubgoals();
 
         this.replanIfFailed();
+
+        if (this.owner.components.has(componentRegistry.Target)) {
+            this.status = Goal.STATUS.COMPLETED;
+        }
     }
 
     terminate() {
