@@ -5,11 +5,11 @@
   "types": "./index.ts",
   "type": "module",
   "dependencies": {
-    "@lastolivegames/becsy": "^0.14.3",
+    "@lastolivegames/becsy": "^0.15.4",
     "becsy-package": "*",
+    "react-becsy": "*",
     "yuka": "^0.7.8",
-    "yuka-package": "*",
-    "react-becsy": "*"
+    "yuka-package": "*"
   },
   "devDependencies": {
     "@types/yuka": "^0.7.1",

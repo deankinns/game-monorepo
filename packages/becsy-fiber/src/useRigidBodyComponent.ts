@@ -7,6 +7,7 @@ import {PositionComponent} from "becsy-package";
 import {QuaternionToThree} from "three-package";
 import {Object3D} from "three";
 import {Object3DSystem} from "../systems/Object3DSystem";
+import {RigidBodyComponent} from "../components";
 
 export const useRigidBodyComponent = (entity: Entity, body: MutableRefObject<RigidBodyApi>) => {
     const physicsSystem = useSystem(PhysicsSystem) as PhysicsSystem;
@@ -17,7 +18,9 @@ export const useRigidBodyComponent = (entity: Entity, body: MutableRefObject<Rig
             body.current.setRotation(QuaternionToThree(entity.read(PositionComponent).rotation));
             physicsSystem.addBody(entity, body.current);
         }
-    }, [entity, physicsSystem, body])
+
+        return () => {physicsSystem.removeBody(entity)};
+    }, [])
 }
 
 export const useObject3dComponent = (entity: Entity, object3d: MutableRefObject<Object3D>) => {
@@ -27,5 +30,7 @@ export const useObject3dComponent = (entity: Entity, object3d: MutableRefObject<
         if (object3d.current) {
             object3dSystem.addObject3d(entity, object3d.current);
         }
-    } , [entity, object3dSystem, object3d])
+
+        return () => {object3dSystem.removeObject3d(entity)};
+    } , [])
 }

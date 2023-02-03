@@ -2,8 +2,8 @@
   "name": "three-yuka-package",
   "version": "1.0.0",
   "dependencies": {
-    "three": "^0.143.0",
+    "three": "^0.149.0",
     "yuka": "^0.7.8",
-    "yuka-package": "*"
+    "yuka-package": "^1.0.0"
   }
 }

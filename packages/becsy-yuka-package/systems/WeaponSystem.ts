@@ -1,12 +1,23 @@
 import {co, Entity, System, system} from "@lastolivegames/becsy";
 import {GameEntityComponent} from "./GameEntitySystem";
 import {CombatSystem} from "./CombatSystem";
-import {Health, Inventory, Packed, PositionComponent, Selected, State, Target, Weapon, Projectile} from "becsy-package";
+import {
+    Health,
+    Inventory,
+    Packed,
+    PositionComponent,
+    Selected,
+    State,
+    Target,
+    Weapon,
+    Projectile,
+    InventorySystem
+} from "becsy-package";
 import {useEcsStore, RefComponent} from "react-becsy";
 import {RigidBodyComponent} from "becsy-fiber";
 import {Euler, Quaternion, Vector3} from "three";
 
-@system(s => s.after(CombatSystem))
+@system(s => s.after(CombatSystem, InventorySystem))
 export class WeaponSystem extends System {
     weapons = this.query(q => q.using(Packed).write.with(Weapon, PositionComponent).current.added.removed.write);
     projectiles = this.query(q => q.with(Projectile, PositionComponent).current.write);
@@ -32,6 +43,7 @@ export class WeaponSystem extends System {
             this.updatePosition(weapon);
         }
 
+        this.accessRecentlyDeletedData(true)
         for (const weapon of this.heldWeapons.removed) {
             this.setLocked(weapon, false)
         }
@@ -39,8 +51,13 @@ export class WeaponSystem extends System {
 
     setLocked(entity: Entity, locked: boolean) {
         const body = entity.read(RigidBodyComponent).body;
-        body.lockRotations(locked)
-        body.lockTranslations(locked)
+        body.lockRotations(locked, true)
+        body.lockTranslations(locked, true)
+        if (!locked) {
+            body.resetForces(true);
+            body.resetTorques(true);
+        }
+
     }
 
     updatePosition(entity: Entity) {

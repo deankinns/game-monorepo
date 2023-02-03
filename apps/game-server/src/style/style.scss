@@ -1,0 +1,9 @@
+@use "./w3.css";
+
+.w3-bar {
+    a, button {
+        @extend .w3-bar-item;
+        @extend .w3-black;
+        @extend .w3-hover-white;
+    }
+}

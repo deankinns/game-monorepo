@@ -9,14 +9,16 @@ import {
     Render,
     HealthSystem,
     EventSystem,
-    MovingEntity as MovingComponent,
+    VelocityComponent as MovingComponent,
     PositionComponent,
     Deleter, State, Inventory,
 } from "becsy-package";
-import {GameEntity, MovingEntity, Vehicle} from "yuka-package";
+// import {GameEntity, MovingEntity, Vehicle} from "yuka-package";
 import {EntityManagerComponent} from "../components/EntityManagerComponent";
 import {ThinkSystem} from "./ThinkSystem";
-import {GameEntityWrapper} from "../entities/Vehicle";
+import {GameEntity, MovingEntity, Vehicle} from "../entities";
+// import {GameEntity, MovingEntity, Vehicle} from "../entities";
+// import {GameEntityWrapper} from "../entities/Vehicle";
 
 @component
 export class GameEntityComponent {
@@ -28,6 +30,7 @@ export class GameEntityComponent {
 )
 export class EntityManagerSystem extends System {
     // @ts-ignore
+
     entityManager: EntityManager = new EntityManager();
     entityManagerSingle = this.singleton.write(EntityManagerComponent);
     // reference: any;

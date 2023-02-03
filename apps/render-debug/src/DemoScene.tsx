@@ -10,12 +10,12 @@ import {
     PointerLockControls,
     FirstPersonControls
 } from "@react-three/drei";
-import {RigidBody, RigidBodyApi} from "@react-three/rapier";
+import {CapsuleCollider, RigidBody, RigidBodyApi} from "@react-three/rapier";
 import {Chair} from "fiber-package";
 import {useRef, Suspense, useEffect} from "react";
 import {RootState, useFrame, useThree} from "@react-three/fiber";
 
-import {TerrainManager, TerrainChunkManager} from "terrain-generator-package";
+import { TerrainChunkManager} from "terrain-generator-package";
 
 import {Dummy, House, usePersonControls} from "fiber-package";
 import * as THREE from "three";
@@ -283,7 +283,7 @@ const Dude = () => {
     return <>
         <RigidBody
             ref={ref}
-            colliders="hull"
+            colliders={false}
             position={[0, 50, 0]}
             enabledRotations={[false, false, false]}
             friction={friction.current}
@@ -296,9 +296,10 @@ const Dude = () => {
                 <Dummy ref={dummyRef} name={'dave'} onClick={() => console.log('click')}/>
             </Suspense>
 
-            <Capsule args={[0.5, 2.5]}>
-                <meshBasicMaterial color={"green"} visible={false}/>
-            </Capsule>
+            {/*<Capsule args={[0.5, 2.5]}>*/}
+            {/*    <meshBasicMaterial color={"green"} visible={false}/>*/}
+            {/*</Capsule>*/}
+            <CapsuleCollider args={[1.1, .5]} />
         </RigidBody>
         {/*<axesHelper ref={camHelper}/>*/}
         {/*<FirstPersonControls object={dummyRef.current}/>*/}

@@ -5,10 +5,11 @@ import {
   NavNode,
   TaskQueue,
   Vector3,
+    Vehicle,
 } from "yuka";
 import { PathPlannerTask } from "./PathPlannerTask";
 import { CONFIG } from "./Config";
-import {Vehicle} from "../entities";
+// import {Vehicle} from "../entities";
 
 /**
  * Class for asynchronous path finding using Yuka's task features.

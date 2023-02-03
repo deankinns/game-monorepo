@@ -1,1 +1,1 @@
-export * from "./ExploreGoal";
+export * from "../../becsy-yuka-package/goals/ExploreGoal";

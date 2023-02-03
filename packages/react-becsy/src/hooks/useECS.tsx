@@ -5,8 +5,17 @@ import {Entity, System, World} from "@lastolivegames/becsy";
 
 import {useFrame} from "@react-three/fiber";
 
-import create from 'zustand';
+import {create} from 'zustand';
+import {devtools} from "zustand/middleware";
 
+// interface i {
+//     foo: string;
+// }
+//
+// const foo  = create<i>()(devtools((set, get) => ({
+//     foo: 'bar',
+//     setFoo: (foo: string) => set({foo}),
+// })))
 
 interface EcsState {
     ecs: ECS,
@@ -23,7 +32,7 @@ interface EcsState {
     selectEntity: (entity: Entity|null) => void,
 }
 let loaded = false;
-export const useEcsStore = create<EcsState>((set, get) => ({
+export const useEcsStore = create<EcsState>()(devtools((set, get) => ({
     ecs: new ECS(),
     // systems: [],
     entities: [],
@@ -63,7 +72,7 @@ export const useEcsStore = create<EcsState>((set, get) => ({
             selectedEntity: entity
         });
     }
-}))
+})))
 
 export const useSystem = (systemType: any) => {
     // const systems = useEcsStore(state => state.systems);
@@ -125,7 +134,7 @@ export const useSystemEntities = ({systemType, query}) => {
         //     removeItems(system[query].removed);
         // }
         if (items.size !== system[query].current.length) {
-            setItems(new Set(system[query].current));
+            setItems(new Set(system[query].current.map((e: Entity) => e.hold())));
         }
 
     })

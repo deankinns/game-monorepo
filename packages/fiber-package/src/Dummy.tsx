@@ -20,8 +20,10 @@ const anims = [
     "BodyJabCross"
 ];
 
+// import '../../../assets'
+
 anims.forEach(anim => {
-    useFBX.preload(new URL(`../../../assets/fbx/${anim}.fbx`, import.meta.url).toString())
+    useFBX.preload(`fbx/${anim}.fbx`)
 })
 
 // eslint-disable-next-line react/display-name
@@ -29,7 +31,7 @@ export const Dummy = forwardRef((props: any, returnRef) => {
     const group = useRef<THREE.Group>(new THREE.Group()) //<THREE.Group> doens't like it
 
     //@ts-ignore
-    const objects = useFBX(anims.map((anim) => new URL(`../../../assets/fbx/${anim}.fbx`, import.meta.url).toString())) as THREE.Group[];
+    const objects = useFBX(anims.map((anim) => `../fbx/${anim}.fbx`)) as THREE.Group[];
 
     //@ts-ignore
     const o = SkeletonUtils.clone(objects[0])

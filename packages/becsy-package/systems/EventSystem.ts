@@ -1,5 +1,5 @@
-import { system, System } from "@lastolivegames/becsy";
-import { Keyboard, Mouse } from "../components";
+import { ComponentType, Entity, system, System} from "@lastolivegames/becsy";
+import {Keyboard, Mouse} from "../components";
 import {GameWorld} from "../GameWorld";
 
 @system((s) => s.beforeWritersOf(Mouse, Keyboard))
@@ -18,8 +18,8 @@ export class EventSystem extends System {
       }
       const message = event.data;
       if (
-        message.type === "enqueueAction" &&
-        typeof message.data === "object"
+          message.type === "enqueueAction" &&
+          typeof message.data === "object"
       ) {
         this.actions.push(message.data);
       }
@@ -37,10 +37,28 @@ export class EventSystem extends System {
     // this.gameWorld.actions = [];
 
     //
-    // for (const action of this.actions) {
-    //     action.action(this, action.entity, action.data);
+    for (const action of this.actions) {
+        action.action(this, action.entity, action.data);
     //     // refresh = true;
-    // }
-    // this.actions = [];
+    }
+    this.actions = [];
+  }
+
+  createAndHold(components: (ComponentType<any> | Record<string, unknown>)[], setEntity: any) {
+    // const entity = this.createEntity(...components);
+    // setEntity(entity.hold());
+    // this.actions.push()
+    this.enqueueAction((system, e, data) => {
+      const entity = system.createEntity(...data.components);
+      data.setEntity(entity.hold());
+    }, undefined, {components, setEntity});
+  }
+
+  enqueueAction(
+      action: (system: System, entity?: Entity, data?: any) => any,
+      entity?: Entity,
+      data?: any
+  ) {
+    this.actions.push({action, entity, data});
   }
 }

@@ -4,9 +4,10 @@ export * from './src/components/Entity';
 export * from './src/components/ECS';
 export * from './src/hooks/useECS';
 export * from './src/hooks/useEntity';
+export * from './src/hooks/useCreateEntity';
 export * from './ECS/components/RefComponent';
 
-import create from 'zustand';
+import {create} from 'zustand';
 
 export const useECSStore = create((set) => ({
     ecs: null,

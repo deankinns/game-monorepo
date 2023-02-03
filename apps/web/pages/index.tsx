@@ -1,7 +1,7 @@
 import {Button} from "ui";
 import Head from "next/head";
 import "ui/w3.css"
-// import "../style/style.css";
+// import "../style/style.scss";
 
 export default function Web() {
      const ports = new Array(8).fill(0);

@@ -53,6 +53,8 @@ const TerrainBlock = memo(forwardRef((
     const [camera] = useThree((state) => [state.camera]);
     useFrame(({camera, controls}) => {
 
+        if (running.current) return
+
         const newIndex = CellIndex(camera.position, 10);
 
         if (newIndex[0] !== camIndex[0] || newIndex[1] !== camIndex[1]) {
@@ -70,13 +72,17 @@ const TerrainBlock = memo(forwardRef((
 
     // const [x, z] = camIndex
 
+    const running = useRef(false);
 
     useEffect(() => {
-        UpdateVisibleChunks_Quadtree(camera.position);
+        if (!running.current) {
+            running.current = true;
+            UpdateVisibleChunks_Quadtree(camera.position).then( () => setTimeout(() => running.current = false, 1000));
+        }
     }, [camIndex, seed, height, width, persistence, lacunarity, scale, exponentiation, position]);
 
 
-    const UpdateVisibleChunks_Quadtree = (position: Vector3) => {
+    const UpdateVisibleChunks_Quadtree = async (position: Vector3) => {
         function _Key(c: { position: any; bounds?: Box2; dimensions: any; }) {
             return c.position[0] + '/' + c.position[1] + ' [' + c.dimensions[0] + ']';
         }
@@ -84,7 +90,7 @@ const TerrainBlock = memo(forwardRef((
         const q = new QuadTree({
             min: new Vector2(-width, -width),
             max: new Vector2(width, width),
-            minNodeSize: 1,
+            minNodeSize: .1,
         });
         q.Insert(position);
 
@@ -156,7 +162,7 @@ const TerrainBlock = memo(forwardRef((
             wireframe={wireframe}
             offset={chunk.center}
             width={chunk.size.x}
-            resolution={32}
+            resolution={16}
             noise={chunk.noise}
             build={lastBuild}
         />)}

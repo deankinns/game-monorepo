@@ -7,7 +7,7 @@ import {System, system} from "@lastolivegames/becsy";
 import {VisionComponent} from "../components/Vision";
 import {MemoryComponent} from "../components/Memory";
 import {MemorySystem, Vision} from "yuka";
-import {Healing, PositionComponent, Target, MovingEntity, State, Inventory} from "becsy-package";
+import {Healing, PositionComponent, Target, VelocityComponent, State, Inventory} from "becsy-package";
 import {ThinkSystem} from "./ThinkSystem";
 import {GameEntityComponent} from "./GameEntitySystem";
 import {NavigationSystem} from "./NavigationSystem";
@@ -38,7 +38,7 @@ export class PerceptionSystem extends System {
         (q) => q.current.with(MemoryComponent, GameEntityComponent).added.removed.write
     );
 
-    checkable = this.query((q) => q.using(Healing, Target, PositionComponent, MovingEntity, State, Inventory, BrainComponent).read);
+    checkable = this.query((q) => q.using(Healing, Target, PositionComponent, VelocityComponent, State, Inventory, BrainComponent).read);
 
     execute() {
         for (const entity of this.vision.added) {

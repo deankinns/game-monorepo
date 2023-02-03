@@ -1,4 +1,7 @@
 export * from "./components";
+export * from "./entities";
+export * from "./evaluators";
 export * from "./systems";
+export * from "./Feature";
 
-export {Vehicle, GameEntity, MovingEntity, Vector3ToYuka, QuaternionToYuka} from 'yuka-package'
+export { Vector3ToYuka, QuaternionToYuka} from 'yuka-package'

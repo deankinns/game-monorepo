@@ -1,62 +1,78 @@
 import {co, Entity, system, System} from "@lastolivegames/becsy";
 import {
-    BrainComponent, MemoryComponent,
+    BrainComponent,
+    MemoryComponent,
+    NavigatorComponent,
     NavMeshComponent,
     PathComponent,
     PathRequestComponent,
+    VehicleEntityComponent,
 } from "../components";
 import {
     Deleter,
-    EventSystem,
-    Inventory, InventorySystem,
+    EventSystem, Health,
+    Inventory,
+    InventorySystem,
     Packed,
     PositionComponent,
     Render,
     Selected,
+    State,
     Target,
-    ToBeDeleted,
-    State
+    ToBeDeleted
 } from "becsy-package";
-import {PathPlanner, Vehicle, Vector3ToYuka, QuaternionToYuka} from "yuka-package";
+import {PathPlanner} from "yuka-package";
 import {GameEntityComponent} from "./GameEntitySystem";
 import {Vector3} from "yuka";
 import {ThinkSystem} from "./ThinkSystem";
 import {EntityManagerComponent} from "../components/EntityManagerComponent";
 import * as THREE from "three";
 
-import {Vector3ToThree, QuaternionToThree} from "three-package"
+import {Vector3ToThree} from "three-package"
 import {PerceptionSystem} from "./PerceptionSystem";
+import {Vehicle} from "../entities";
 
 @system((s) => s.after(EventSystem, ThinkSystem, PerceptionSystem, InventorySystem).before(Deleter, Render))
 export class NavigationSystem extends System {
-    navigators = this.query(
+    pathRequests = this.query(
         (q) => q.with(PathRequestComponent, GameEntityComponent, PositionComponent).added.current.write
-            .using(Target, Inventory, Packed, State, Selected, ToBeDeleted, BrainComponent, MemoryComponent).write
+            .using(Target, Inventory, Packed, State, Selected, ToBeDeleted, BrainComponent, MemoryComponent, Health).write
     );
     navMeshes = this.query((q) => q.with(NavMeshComponent).added.current.write);
     running = this.query(q => q.with(PathComponent, GameEntityComponent).added.current.write.using(PathRequestComponent));
 
     entityManagerSingle = this.singleton.write(EntityManagerComponent);
 
+    navigators = this.query(q => q.using(NavigatorComponent).write.without(NavigatorComponent).with(VehicleEntityComponent).added.read)
+
     // pathPlanners: PathPlanner[] = [];
 
     execute() {
-        for (const entity of this.navMeshes.added) {
-            const navMesh = entity.read(NavMeshComponent).navMesh;
-            navMesh.spatialIndex = this.entityManagerSingle.manager.spatialIndex;
-            navMesh.updateSpatialIndex()
-            const pathPanner = new PathPlanner(navMesh);
-            entity.write(NavMeshComponent).pathPanner = pathPanner
-            // @ts-ignore
-            this.entityManagerSingle.manager.pathPlanner = pathPanner;
+        // for (const entity of this.navMeshes.added) {
+        //     const navMesh = entity.read(NavMeshComponent).navMesh;
+        //     navMesh.spatialIndex = this.entityManagerSingle.manager.spatialIndex;
+        //     navMesh.updateSpatialIndex()
+        //     entity.write(NavMeshComponent).pathPanner = new PathPlanner(navMesh)
+        //     // @ts-ignore
+        //     // this.entityManagerSingle.manager.pathPlanner = pathPanner;
+        // }
+
+        for (const entity of this.navMeshes.current) {
+            entity.read(NavMeshComponent).navMesh.updateSpatialIndex();
         }
-        // super.execute();
 
         for (const entity of this.navigators.added) {
+            // entity.add(NavigatorComponent, {navMesh: this.singleton});
+            for (const navMesh of this.navMeshes.current) {
+                entity.add(NavigatorComponent, {navMesh: navMesh});
+            }
+        }
+
+        for (const entity of this.pathRequests.added) {
             const vehicle = entity.read(GameEntityComponent).entity as Vehicle;
             const {from, to} = entity.read(PathRequestComponent);
             for (const nav of this.navMeshes.current) {
-                const pathPlanner = nav.read(NavMeshComponent).pathPanner;
+                const pathPlanner = nav.read(NavMeshComponent).pathPlanner;
                 pathPlanner.findPath(
                     vehicle,
                     new Vector3(from.x, from.y, from.z),
@@ -99,7 +115,7 @@ export class NavigationSystem extends System {
         }
 
         for (const entity of this.navMeshes.current) {
-            const pathPlanner = entity.read(NavMeshComponent).pathPanner;
+            const pathPlanner = entity.read(NavMeshComponent).pathPlanner;
             pathPlanner?.update();
         }
     }

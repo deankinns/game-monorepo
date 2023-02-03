@@ -1,4 +1,4 @@
-import {GameEntity as YukaGameEntity} from "yuka";
+import {GameEntity as YukaGameEntity, Vector3} from "yuka";
 import {componentRegistry, componentWrapperInterface} from "./Components";
 
 // export function applyMixins(derivedCtor: any, constructors: any[]) {

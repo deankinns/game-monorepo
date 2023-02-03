@@ -32,7 +32,7 @@ export class Collectable {
 
 @system((s) => s.afterWritersOf(Inventory, Equipped, Collectable).before(Render))
 export class InventorySystem extends System {
-    inventories = this.query((q) => q.current.with(Inventory).current.write);
+    inventories = this.query((q) => q.current.with(Inventory).current.removed.write);
     packed = this.query((q) => q.current.with(Packed).current.added.write.using(RenderComponent, Target).write);
 
     makeHealthPack(point: any) {
@@ -43,6 +43,14 @@ export class InventorySystem extends System {
         for (const packed of this.packed.added) {
             if (packed.has(RenderComponent)) {
                 packed.remove(RenderComponent);
+            }
+        }
+
+        this.accessRecentlyDeletedData(true)
+
+        for (const inventory of this.inventories.removed) {
+            for (const item of inventory.read(Inventory).contents) {
+                item.remove(Packed);
             }
         }
     }

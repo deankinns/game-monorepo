@@ -12,7 +12,7 @@ import React, {
 } from "react";
 import * as THREE from "three";
 import {useFrame} from "@react-three/fiber";
-import {Box, Html, Sphere} from "@react-three/drei";
+import {Box, Capsule, Html, Sphere} from "@react-three/drei";
 import {
     Physics,
     RigidBody,
@@ -20,12 +20,12 @@ import {
     BallCollider,
     RigidBodyApi,
     useRevoluteJoint,
-    interactionGroups
+    interactionGroups, CapsuleCollider, ConeCollider
 } from "@react-three/rapier";
 import {Dummy} from "fiber-package";
-import {GameEntityComponent, Vehicle, BrainComponent} from 'becsy-yuka-package';
+import {GameEntityComponent, Vehicle, BrainComponent, MemoryComponent} from 'becsy-yuka-package';
 import {Vector3ToThree, QuaternionToThree} from 'three-package'
-import {PositionComponent, MovingEntity, State, Health, Inventory, Weapon, Target} from 'becsy-package'
+import {PositionComponent, State, Health, Inventory, Weapon, Target} from 'becsy-package'
 import {QuaternionToYuka, Vector3ToYuka, Vector3} from "yuka-package";
 import {RigidBodyApiRef} from "@react-three/rapier/dist/declarations/src/types";
 import {RefComponent, useEcsStore, useSystem} from "react-becsy";
@@ -264,26 +264,62 @@ export const Robot = memo((props: { entity: Entity; onClick: any; position?: any
         dummyRef.current?.actions['Falling Idle'].setEffectiveWeight(airborneTime.current);
         airborneTime.current = Math.max(0, airborneTime.current - 0.1);
     }
+    //
+    // if (!props.entity || !props.entity.alive || !props.entity.__valid) {
+    //     return null
+    // }
+    const {x, y, z} = props.entity.read(PositionComponent).position;
 
-    return (
-        // <>
-        <RigidBody
+    return (<RigidBody
             userData={{entity: props.entity}}
             ref={bodyRef}
             colliders={false}
-            // position={[vehiclePos.x, vehiclePos.y, vehiclePos.z]}
+            position={[x, y, z]}
             enabledRotations={[false, true, false]}
             onCollisionEnter={() => airborne.current = false}
             onCollisionExit={() => airborne.current = true}
             collisionGroups={interactionGroups([1])}
+            friction={0}
         >
             <Suspense fallback={null}>
                 <Dummy onClick={props.onClick} ref={dummyRef}/>
                 {/*<axesHelper args={[1]}/>*/}
             </Suspense>
-            <BallCollider args={[0.5]} position={[0, 1.1, 0]}/>
-            <BallCollider args={[0.5]} position={[0, 0, 0]}/>
-            <BallCollider args={[0.5]} position={[0, -1.2, 0]}/>
+            <CapsuleCollider args={[1.1, .5]}/>
+            <ConeCollider
+                args={[50, 10]}
+                rotation={[-Math.PI / 2, 0, 0]}
+                position={[0, 1, 50]}
+                sensor
+                mass={0}
+                collisionGroups={interactionGroups([10], [0,1,2,3,4])}
+                onIntersectionEnter={(p) => {
+                    console.log(p)
+                    // @ts-ignore
+                    if (p.other.rigidBody?.userData?.entity.has(GameEntityComponent)) {
+                        // @ts-ignore
+                        const target = p.other.rigidBody?.userData?.entity.read(GameEntityComponent)
+                        const memory = props.entity.read(MemoryComponent).system;
+
+
+                        if (!memory.hasRecord(target)) {
+                            memory.createRecord(target)
+                        }
+                        const record = memory.getRecord(target);
+                        if (record) {
+                            record.lastSensedPosition = target.read(PositionComponent).position
+                            record.timeLastSensed = Date.now()
+                        }
+
+
+
+                        // memory.
+                    }
+                }}
+            />
+            {/*<BallCollider args={[0.5]} position={[0, 1.1, 0]}/>*/}
+            {/*<BallCollider args={[0.5]} position={[0, 0, 0]}/>*/}
+            {/*<BallCollider args={[0.5]} position={[0, -1.2, 0]}/>*/}
             <Html>
                 {/*    <div className={'w3-light-grey'}>*/}
                 {/*<p>{props.entity.read(Health).health}</p>*/}
@@ -301,7 +337,8 @@ Robot.displayName = 'Robot';
 
 const BrainInfo = ({entity}: { entity: Entity }) => {
     // const brain = useStoreState(state => state.brain);
-    const brain = entity.read(BrainComponent).object;
+    const brain = useMemo(() => entity.read(BrainComponent).object, [entity]);
+    const [selectEntity] = useEcsStore(state => [state.selectEntity]);
     // const target =
     // const [info, setInfo] = useState('');
 
@@ -325,15 +362,30 @@ const BrainInfo = ({entity}: { entity: Entity }) => {
         };
     }, [show]);
 
-    return (
-        <div className={'w3-light-grey'}>
-            <button className={'w3-tiny'} onClick={() => setShow(!show)}>{entity.read(Health).health}</button>
-            {show ?  <>
-                <EntityPanel entity={entity}/>
-                <pre>{JSON.stringify(brain.toJSON().subgoals, undefined, 4)}</pre>
-            </> : null}
-        </div>
-    )
+    try {
+        return (
+            <div className={'w3-light-grey'}>
+                {/*<div className="w3-container">*/}
+                <div className={'w3-cell-row '}>
+                    <button className={'w3-tiny w3-button w3-cell'}
+                            onClick={() => setShow(!show)}>{entity.read(Health).health}</button>
+
+                    <button className={'w3-tiny w3-button w3-cell'} onClick={(event) => {
+                        selectEntity(entity)
+                        event.stopPropagation()
+                    }}>s
+                    </button>
+                </div>
+                {show ? <EntityPanel entity={entity}/> : null}
+
+                {show ? <pre>{JSON.stringify(brain.toJSON().subgoals, undefined, 4)}</pre> : null}
+                {/*</div>*/}
+
+            </div>)
+    } catch (e) {
+        return null
+    }
+
 }
 
 // @ts-ignore

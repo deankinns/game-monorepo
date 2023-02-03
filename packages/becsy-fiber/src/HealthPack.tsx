@@ -29,6 +29,7 @@ export const HealthPack = (props: {
 
     return <RigidBody
         ref={bodyRef}
+        // position={props.entity.read(PositionComponent).position}
     >
         <Box
             ref={meshRef}

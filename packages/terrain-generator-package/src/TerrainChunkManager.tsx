@@ -3,8 +3,8 @@ import React, {forwardRef, useImperativeHandle, useState} from "react";
 import {button, useControls} from "leva";
 import TerrainBlock from "./TerrainBlock";
 
-export const TerrainChunkManager = forwardRef(({onClick, onContextMenu}: any, returnRef) => {
-    const [seed, setSeed] = useState(Date.now());
+export const TerrainChunkManager = forwardRef(({onClick, onContextMenu, seed}: any, returnRef) => {
+    const [s, setSeed] = useState(Date.now());
     const ref = React.useRef<any>(null);
     const {
         wireframe,
@@ -40,7 +40,7 @@ export const TerrainChunkManager = forwardRef(({onClick, onContextMenu}: any, re
         ref={ref}
         onClick={onClick}
         onContextMenu={onContextMenu}
-        seed={seed}
+        seed={s}
         wireframe={wireframe}
         height={height}
         width={width}

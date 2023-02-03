@@ -1,10 +1,11 @@
 import { component, Entity, field } from "@lastolivegames/becsy";
-import { v3Type, Vector3 } from "./MovingEntity";
+// import { v3Type, Vector3 } from "./MovingEntity";
 
 @component
 export class Target {
   @field.ref declare value: Entity;
-  @field(v3Type) declare position: Vector3;
+  @field.float64.vector(['x', 'y', 'z'])
+  declare position: [number, number, number] & { x: number, y: number, z: number };
 }
 
 @component

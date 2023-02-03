@@ -1,11 +1,8 @@
 import {RigidBodyComponent} from "../components";
-import {Entity, System, system, co} from "@lastolivegames/becsy";
+import {co, Entity, system, System} from "@lastolivegames/becsy";
 import {RigidBodyApi} from "@react-three/rapier";
-import {PositionComponent, ToBeDeleted,Deleter} from "becsy-package";
-import {GameEntityComponent, VehicleEntityComponent, EntityManagerSystem, Vehicle, CombatSystem} from "becsy-yuka-package";
-import * as THREE from "three";
-import {Quaternion} from "three";
-import {QuaternionToThree} from "three-package";
+import {Deleter, PositionComponent, ToBeDeleted} from "becsy-package";
+import {GameEntityComponent} from "becsy-yuka-package";
 
 @system(s => s.afterWritersOf(RigidBodyComponent).inAnyOrderWith(Deleter))
 export class PhysicsSystem extends System {
@@ -42,53 +39,26 @@ export class PhysicsSystem extends System {
     @co *addBody(entity: Entity, body: RigidBodyApi) {
         co.scope(entity);
         co.cancelIfCoroutineStarted();
-        entity.add(RigidBodyComponent, {body});
+
+        if (entity.has(RigidBodyComponent)) {
+            entity.write(RigidBodyComponent).body = body;
+        }  else{
+            entity.add(RigidBodyComponent, {body});
+        }
+
+        yield co.waitForFrames(1);
+    }
+
+    @co *removeBody(entity: Entity) {
+        co.scope(entity);
+        co.cancelIfCoroutineStarted();
+        co.cancelIfComponentMissing(RigidBodyComponent);
+
+        if (!entity || !entity.__valid || !entity.alive) return co.cancel();
+        if (!entity.has(RigidBodyComponent)) return co.cancel();
+
+        entity.remove(RigidBodyComponent);
         yield co.waitForFrames(1);
     }
 }
 
-const UP_AXIS = new THREE.Vector3(0, 1, 0);
-
-@system(s => s.after(EntityManagerSystem).before(PhysicsSystem))
-export class RobotSystem extends System {
-    robots = this.query(q => q.with(RigidBodyComponent, GameEntityComponent, VehicleEntityComponent).current.write);
-
-
-    execute() {
-        for (const entity of this.robots.current) {
-            this.updateForces(entity);
-        }
-    }
-
-    updateForces(entity: Entity) {
-        const vehicle = entity.read(GameEntityComponent).entity as Vehicle;
-        const body = entity.read(RigidBodyComponent).body;
-        const airborne = false;
-
-        const currentVel = body.linvel();
-        const newImpulse = new THREE.Vector3(
-            vehicle.velocity.x * (airborne ? 0.1 : 1),
-            currentVel.y,
-            vehicle.velocity.z * (airborne ? 0.1 : 1)
-        )
-        newImpulse.sub(currentVel)
-        newImpulse.clampLength(-1, 1)
-
-        body.applyImpulse(newImpulse)
-
-        const v1 = new THREE.Vector3(0, 0, 1);
-        v1.applyQuaternion(body.rotation())
-
-        const v2 = new THREE.Vector3(0, 0, 1);
-        v2.applyQuaternion(QuaternionToThree(vehicle.rotation))
-
-        const currentDir = v1.normalize().cross(UP_AXIS);
-        const targetDir = v2.normalize();
-        const dot = currentDir.dot(targetDir) * -1;
-
-        const turnSpeed = body.angvel().length()
-        const maxTurnSpeed = vehicle.maxTurnRate;
-
-        body.setAngvel({x: 0, y: dot * (turnSpeed < maxTurnSpeed ? 10 : .1), z: 0})
-    }
-}

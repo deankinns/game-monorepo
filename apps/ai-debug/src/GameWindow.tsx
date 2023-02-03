@@ -4,22 +4,26 @@ import {
   ExploreEvaluator,
   GetHealthEvaluator,
   GetWeaponEvaluator,
-  PathPlanner,
+  // PathPlanner,
+  Vehicle,
+  GameEntity,
+  BrainComponent,
+} from "becsy-yuka-package";
+
+import {
   HEALTH_PACK,
   TYPE_COLLECTIBLE,
   Health,
+  componentWrapper,
+  componentRegistry,
+  Collectable,
+  Healing,
   EntityManager,
   NavMesh,
   Polygon,
   Think,
   Vector3,
-  Vehicle,
-  GameEntity,
-  Healing,
-  componentWrapper,
-  BrainComponent,
-  componentRegistry,
-  Collectable,
+  PathPlanner
 } from "yuka-package";
 
 import { MemorySystem } from "yuka";

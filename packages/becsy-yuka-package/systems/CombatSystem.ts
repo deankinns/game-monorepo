@@ -3,8 +3,10 @@ import {ThinkSystem} from "./ThinkSystem";
 import {BrainComponent, MemoryComponent, PathRequestComponent, VehicleEntityComponent} from "../components";
 import {GameEntityComponent} from "./GameEntitySystem";
 import {Health, Inventory, Packed, PositionComponent, Selected, State, Target, Weapon} from "becsy-package";
-import {AttackEvaluator, GameEntity, GetWeaponEvaluator} from "yuka-package";
+import { GameEntity, } from "yuka-package";
 import {Vehicle} from "yuka";
+import {GetWeaponEvaluator} from "../evaluators/GetWeaponEvaluator";
+import {AttackEvaluator} from "../evaluators/AttackEvaluator";
 
 @system((s) => s.after(ThinkSystem).afterWritersOf(BrainComponent))
 export class CombatSystem extends System {
@@ -65,6 +67,11 @@ export class CombatSystem extends System {
         }
 
         const target = targetEntity.read(GameEntityComponent).entity;
+
+        const memory = entity.read(MemoryComponent).system;
+        if (!memory.hasRecord(target) || !memory.getRecord(target).visible) {
+            return co.cancel();
+        }
 
         const owner = entity.read(GameEntityComponent).entity;
         if (!owner.rotateTo(target.position, this.delta, 0.1)) {

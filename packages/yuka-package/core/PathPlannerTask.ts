@@ -1,6 +1,6 @@
-import { AStar, Graph, NavNode, Task, Vector3 } from "yuka";
+import {AStar, Graph, NavNode, Task, Vector3, Vehicle} from "yuka";
 import { PathPlanner } from "./PathPlanner";
-import { Vehicle } from "../entities/Vehicle";
+// import { Vehicle } from "../entities/Vehicle";
 
 /**
  * Class for representing a single path planning task.

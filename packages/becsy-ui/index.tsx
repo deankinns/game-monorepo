@@ -4,3 +4,7 @@ export * from "./EntityPanel";
 export * from "./ComponentList";
 export * from "./ComponentPanel";
 export * from "./GameWorldWrapper";
+export * from "./SelectedEntity";
+export * from "./SidePanel";
+export * from "./Toolbar";
+export {useCreateEntity} from "../react-becsy/src/hooks/useCreateEntity";
