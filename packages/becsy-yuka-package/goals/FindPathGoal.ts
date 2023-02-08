@@ -49,8 +49,12 @@ export class FindPathGoal extends Goal<any> {
 }
 
 function onPathFound(owner: Vehicle, path: Vector3[]) {
-    if (owner.components.has(PathComponent)) {
-        owner.components.remove(PathComponent);
+    const entity = owner.components
+
+    if (!entity.__valid || !entity.alive) return;
+
+    if (entity.has(PathComponent)) {
+        entity.remove(PathComponent);
     }
-    owner.components.add(PathComponent, {path: path});
+    entity.add(PathComponent, {path: path});
 }

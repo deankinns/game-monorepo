@@ -1,6 +1,7 @@
 import {HealthPacks} from "becsy-fiber/src/HealthPacks";
 import {Robots} from "becsy-fiber/src/Robots";
 import {Weapons} from "becsy-fiber/src/Weapons";
+import {BulletWrapper} from "becsy-fiber/src/BulletWrapper";
 import {useEntities} from "@/hooks/useEntities";
 import {useEcsStore, useEntity} from "react-becsy";
 import {RenderComponent} from "becsy-package";
@@ -18,6 +19,7 @@ export default function GameEntities() {
         <HealthPacks/>
         <Robots />
         <Weapons />
+        <BulletWrapper />
 
         {ids.map((i) => <Test key={i} />)}
     </>

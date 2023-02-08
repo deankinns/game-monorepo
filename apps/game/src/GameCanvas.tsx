@@ -2,7 +2,7 @@ import {useNavMesh} from "react-yuka/UseNavMesh";
 import {Canvas, ThreeEvent} from "@react-three/fiber";
 import React, {Suspense, useEffect, useRef} from "react";
 import * as THREE from "three";
-import {useDebug} from "../../../packages/fiber-package/src/UseDebug";
+import {useDebug} from "fiber-package/src/UseDebug";
 import {Debug, Physics} from "@react-three/rapier";
 import {Robots} from "becsy-fiber/src/Robots";
 import {GameEntities} from "./GameEntities";

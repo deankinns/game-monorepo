@@ -11,6 +11,7 @@ import '../style/style.scss'
 
 import 'becsy-package/systems';
 import 'becsy-yuka-package/systems';
+import 'becsy-fiber/systems';
 
 import Layout from '@/components/dom/Layout'
 
@@ -31,7 +32,6 @@ export default function App({Component, pageProps}: any) {
 
     // @ts-ignore
     return <Layout ref={ref}>
-        <Component {...pageProps} />
         {Component?.canvas && (
             <Scene
                 className='pointer-events-none'
@@ -42,5 +42,6 @@ export default function App({Component, pageProps}: any) {
                 {Component.hideWorld ? null : <GameWorld />}
             </Scene>
         )}
+        <Component {...pageProps} />
     </Layout>
 }

@@ -56,9 +56,9 @@ extend({
 
 const MountainMaterial = () => {
     const [flatTexture, slopeTexture, snowTexture] = useLoader(TextureLoader, [
-        "textures/grass.jpg",
-        "textures/rock.jpg",
-        "textures/snow.jpg",
+        "/textures/grass.jpg",
+        "/textures/rock.jpg",
+        "/textures/snow.jpg",
     ]);
 
     const {snowHeight} = useControls("Terrain", {snowHeight: 30.0});

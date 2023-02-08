@@ -141,3 +141,12 @@ export const useSystemEntities = ({systemType, query}) => {
 
     return useMemo(() => items, [items]);
 }
+
+export const useEntityById = (id: number) => {
+    const [ecs ] = useEcsStore(state => [state.ecs]);
+
+    return useMemo(() => {
+        // @ts-ignore
+        return ecs.world?.__dispatcher.singleton.__registry.heldEntities[id];
+    }, [id, ecs])
+}

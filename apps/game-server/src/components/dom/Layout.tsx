@@ -16,8 +16,8 @@ const Layout = forwardRef(({ children, ...props }: any, ref) => {
             ref={mergeRefs([ref, localRef])}
             style={{width: '100vw', height: '100vh'}}
             >
-            <Toolbar />
             {children}
+            <Toolbar />
             <SidePanel />
             <SelectedEntity />
         </div>

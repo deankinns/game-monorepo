@@ -38,7 +38,7 @@ const v1 = new THREE.Vector3();
 const v2 = new THREE.Vector3();
 
 
-export const Robot = memo((props: { entity: Entity; onClick: any; position?: any }) => {
+export const Robot =(props: { entity: Entity; onClick: any; position?: any }) => {
     // const ECS = useContext(ECSContext);
     // const ECS = useEcsStore().ecs;
     const ecs = useEcsStore(state => state.ecs);
@@ -107,7 +107,7 @@ export const Robot = memo((props: { entity: Entity; onClick: any; position?: any
                 body: bodyRef.current,
             }
             ecs.enqueueAction((sys, e, {handleRef}) => {
-                if (!e) return
+                if (!e || !e.__valid || !e.alive) return;
                 if (!e.has(RefComponent)) {
                     e.add(RefComponent, {ref: handleRef})
                 } else {
@@ -128,11 +128,20 @@ export const Robot = memo((props: { entity: Entity; onClick: any; position?: any
 
 
         if (bodyRef.current) {
-            bodyRef.current.setTranslation(props.entity.read(PositionComponent).position);
+            bodyRef.current.setTranslation({
+                x: props.entity.read(PositionComponent).position.x,
+                y: props.entity.read(PositionComponent).position.y,
+                z: props.entity.read(PositionComponent).position.z,
+            });
             physicsSystem.addBody(props.entity, bodyRef.current);
         }
 
-    }, [ecs, props.entity])
+
+        return () => {
+            bodyRef.current?.raw().sleep()
+            physicsSystem.removeBody(props.entity);
+        }
+    }, [ecs, physicsSystem, props.entity])
 
     useFrame((state, delta, frame) => {
         if (!props.entity || !props.entity.__valid || !props.entity.alive) return;
@@ -268,23 +277,26 @@ export const Robot = memo((props: { entity: Entity; onClick: any; position?: any
     // if (!props.entity || !props.entity.alive || !props.entity.__valid) {
     //     return null
     // }
-    const {x, y, z} = props.entity.read(PositionComponent).position;
 
     return (<RigidBody
             userData={{entity: props.entity}}
             ref={bodyRef}
             colliders={false}
-            position={[x, y, z]}
+            position={[
+                props.entity.read(PositionComponent).position.x,
+                props.entity.read(PositionComponent).position.y,
+                props.entity.read(PositionComponent).position.z
+            ]}
             enabledRotations={[false, true, false]}
             onCollisionEnter={() => airborne.current = false}
             onCollisionExit={() => airborne.current = true}
             collisionGroups={interactionGroups([1])}
             friction={0}
         >
-            <Suspense fallback={null}>
-                <Dummy onClick={props.onClick} ref={dummyRef}/>
-                {/*<axesHelper args={[1]}/>*/}
-            </Suspense>
+            {/*<Suspense fallback={null}>*/}
+            <Dummy onClick={props.onClick} ref={dummyRef}/>
+            {/*<axesHelper args={[1]}/>*/}
+            {/*</Suspense>*/}
             <CapsuleCollider args={[1.1, .5]}/>
             <ConeCollider
                 args={[50, 10]}
@@ -292,9 +304,9 @@ export const Robot = memo((props: { entity: Entity; onClick: any; position?: any
                 position={[0, 1, 50]}
                 sensor
                 mass={0}
-                collisionGroups={interactionGroups([10], [0,1,2,3,4])}
+                collisionGroups={interactionGroups([10], [0, 1, 2, 3, 4])}
                 onIntersectionEnter={(p) => {
-                    console.log(p)
+                    // console.log(p)
                     // @ts-ignore
                     if (p.other.rigidBody?.userData?.entity.has(GameEntityComponent)) {
                         // @ts-ignore
@@ -310,7 +322,6 @@ export const Robot = memo((props: { entity: Entity; onClick: any; position?: any
                             record.lastSensedPosition = target.read(PositionComponent).position
                             record.timeLastSensed = Date.now()
                         }
-
 
 
                         // memory.
@@ -332,7 +343,7 @@ export const Robot = memo((props: { entity: Entity; onClick: any; position?: any
 
         // </>
     );
-})
+}
 Robot.displayName = 'Robot';
 
 const BrainInfo = ({entity}: { entity: Entity }) => {

@@ -14,7 +14,18 @@ const Terrain = ({seed}: any) => {
         ref={ref}
         seed={seed}
         onClick={(e: ThreeEvent<MouseEvent>) => {
-            selectEntity(null);
+
+            switch (e.button) {
+                case 0:
+                    selectEntity(null);
+                    break;
+                case 2:
+                    if (selectedEntity) {
+                        navigationSystem.goTo(selectedEntity, e.point);
+                    }
+                    break
+            }
+
             e.stopPropagation()
         }}
         onContextMenu={(e: ThreeEvent<MouseEvent>) => {

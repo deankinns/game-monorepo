@@ -108,7 +108,7 @@ export class NavigationSystem extends System {
                 entity.remove(PathComponent);
             }
 
-            if (entity.has(PathRequestComponent)) {
+            if (entity.has(PathRequestComponent) && entity.has(PathComponent)) {
                 entity.remove(PathComponent);
             }
 

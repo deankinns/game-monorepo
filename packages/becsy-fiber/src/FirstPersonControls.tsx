@@ -9,6 +9,7 @@ import {VehicleEntityComponent, Vehicle, GameEntityComponent,Vector3ToYuka,Quate
 import {usePersonControls} from "fiber-package";
 import {RefComponent, useEcsStore} from "react-becsy";
 import {RigidBodyApi} from "@react-three/rapier";
+import {Entity} from "@lastolivegames/becsy";
 
 
 class ThirdPersonCamera {
@@ -54,11 +55,12 @@ class ThirdPersonCamera {
     }
 }
 
-export const FirstPersonControls = () => {
+export const FirstPersonControls = ({entity}: {entity: Entity}) => {
     const firstPersonRef = useRef<{ camera: THREE.Camera } | any>(null!);
     const {forward, backward, left, right, jump} = usePersonControls()
     // const player = useContext(PlayerContext);
-    const selected = useEcsStore(state => state.selectedEntity);
+    // const selected = useEcsStore(state => state.selectedEntity);
+    const selected = entity
 
     // const thirdPersonCamera = useRef<ThirdPersonCamera>();
 
@@ -103,9 +105,11 @@ export const FirstPersonControls = () => {
                 const rot = new THREE.Quaternion();
                 state.camera.getWorldQuaternion(rot);
 
-                // rot.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI))
+                rot.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI))
 
                 Vector3ToYuka(dir, vehicle.velocity);
+
+
 
                 QuaternionToYuka(rot, vehicle.rotation);
                 // vehicle.lookAt(forward)
@@ -115,7 +119,7 @@ export const FirstPersonControls = () => {
             }
         }
 
-        state.camera.near = 1;
+        state.camera.near = .9;
     })
     return <PointerLockControls ref={firstPersonRef}/>
 }

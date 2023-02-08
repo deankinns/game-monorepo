@@ -20,14 +20,7 @@ export default function Page() {
 
     return (
         <div>
-            <Link href="/info">Info</Link>
-            <Link href="/game">Game</Link>
-            <h1>Store</h1>
-            <Button/>
-            <button onClick={() => {
-                renderSystem.newEntity()
-                setState(renderSystem.items.current.length)
-            }}>{state}</button>
+            <p>home</p>
         </div>
     );
 }

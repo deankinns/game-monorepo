@@ -9,7 +9,7 @@ export const Robots = () => {
 
     const items = useSystemEntities({systemType: EntityManagerSystem, query: 'vehicleEntities'})
 
-    return <>{[...items]?.map((e: Entity) => <Robot
+    return <>{[...items]?.map((e: Entity) => e.__valid && e.alive && <Robot
         key={e.__id}
         entity={e.hold()}
         onClick={(ev: any) => {

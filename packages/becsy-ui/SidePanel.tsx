@@ -12,7 +12,7 @@ export const SidePanel = () => {
             position: "absolute",
             height: "100vh",
             overflow: "auto",
-            zIndex: 999,
+            // zIndex: 9999999,
         }}
     >
         <button onClick={() => setShow(!show)}>

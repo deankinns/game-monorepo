@@ -1,48 +1,51 @@
-import React from "react";
+import React, {useEffect} from "react";
+import { OrbitControls} from "@react-three/drei";
+import {useToolbar} from "@/hooks/useToolbar";
+import { NewEntityButton} from 'becsy-ui'
+import {Health, Inventory, Weapon, Healing, Collectable} from "becsy-package";
+import {
+    BrainComponent,
+    MemoryComponent,
+    VehicleEntityComponent,
+    VisionComponent,
+    StaticEntityComponent
+} from "becsy-yuka-package";
 import Link from "next/link";
-import App from "@/pages/game/_app";
-import {Box} from "@react-three/drei";
-import {Toolbar} from "becsy-ui";
-import dynamic from "next/dynamic";
-import {useEntities} from "@/hooks/useEntities";
-
-const GameWorld = dynamic(() => import('@/components/canvas/GameWorld'), {ssr: false})
+import {useEcsStore} from "react-becsy";
 
 export default function Page() {
-    const [state, setState] = React.useState(0)
+    const [setToolbarButtons] = useToolbar(state => ([state.setToolbarButtons]));
+    const [selectedEntity] = useEcsStore(state => ([state.selectedEntity]));
 
-    const [ids, add, remove] = useEntities(state => ([state.ids, state.add, state.remove]));
-    return ( <div>
-            <button onClick={() => add(Date.now() + 'dave')}>+</button>
-            <span>{ids.length}</span>
-            <button onClick={() => remove(ids[0])}>-</button>
-        </div>
-        // <Toolbar>
-        //     <Link href={'/'} passHref>
-        //         <a className={'w3-bar-item w3-button'}>Home</a>
-        //     </Link>
-        //     <Link href={'/info'} passHref>
-        //         <a className={'w3-bar-item w3-button'}>Info</a>
-        //     </Link>
-        //
-        // </Toolbar>
-    );
+    useEffect(() => {
+        document.exitPointerLock()
+
+        setToolbarButtons(<>
+            <NewEntityButton components={[
+                Health,
+                VehicleEntityComponent,
+                Inventory,
+                BrainComponent,
+                VisionComponent,
+                MemoryComponent,
+            ]}>Player</NewEntityButton>
+            <NewEntityButton
+                components={[Healing, Collectable, StaticEntityComponent]}>Health</NewEntityButton>
+            <NewEntityButton components={[Collectable, Weapon, {
+                ammo: 10,
+                maxAmmo: 10
+            }, StaticEntityComponent]}>Gun</NewEntityButton>
+        </>)
+
+        return () => setToolbarButtons(null)
+    }, [])
+
+    return <div>
+        <p>game</p>
+        {selectedEntity && <Link href={'/fps/' + selectedEntity.__id}>Info</Link>}
+    </div>
 }
-
 
 Page.canvas = (props: any) => {
-    return <Box />
-}
-
-Page.hideWorld = true
-
-Page.toolbar = (props: any) => {
-    return <Toolbar>
-        <Link href={'/'} passHref>
-            <a className={'w3-bar-item w3-button'}>Home</a>
-        </Link>
-        <Link href={'/info'} passHref>
-            <a className={'w3-bar-item w3-button'}>Info</a>
-        </Link>
-    </Toolbar>
+    return <OrbitControls/>
 }

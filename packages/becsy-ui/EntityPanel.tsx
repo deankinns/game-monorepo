@@ -181,10 +181,14 @@ export const EntityPanel = ({entity}: { entity: Entity }) => {
                         Delete
                     </button>
 
-                    <button onClick={() => setShow(!show) /*this.setState({ show: !this.state.show })*/}>
+                    <button onClick={(e) => {
+                        setShow(!show);
+                        e.stopPropagation()
+                    } /*this.setState({ show: !this.state.show })*/}>
                         {show ? "hide" : "show"}
                     </button>
                     <button onClick={() => selectEntity(entity)}>select</button>
+                    <button onClick={() => console.log(entity)}>log</button>
                 </div>
 
                 {show ? <ComponentList components={has} entity={entity}/> : null}

@@ -209,11 +209,11 @@ export const Rifle = (props: { entity: Entity;  }) => {
         <RigidBody
             type={"dynamic"}
             ref={bodyRef}
-            // position={[
-            //     gameEntity.position.x,
-            //     gameEntity.position.y,
-            //     gameEntity.position.z,
-            // ]}
+            position={[
+                props.entity.read(PositionComponent).position.x,
+                props.entity.read(PositionComponent).position.y,
+                props.entity.read(PositionComponent).position.z
+            ]}
             collisionGroups={interactionGroups([2], [0])}
         >
             <group ref={ref}>

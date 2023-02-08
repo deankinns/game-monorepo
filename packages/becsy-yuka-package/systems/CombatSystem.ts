@@ -3,25 +3,18 @@ import {ThinkSystem} from "./ThinkSystem";
 import {BrainComponent, MemoryComponent, PathRequestComponent, VehicleEntityComponent} from "../components";
 import {GameEntityComponent} from "./GameEntitySystem";
 import {Health, Inventory, Packed, PositionComponent, Selected, State, Target, Weapon} from "becsy-package";
-import { GameEntity, } from "yuka-package";
+import {GameEntity,} from "becsy-yuka-package";
 import {Vehicle} from "yuka";
-import {GetWeaponEvaluator} from "../evaluators/GetWeaponEvaluator";
-import {AttackEvaluator} from "../evaluators/AttackEvaluator";
+import {GetWeaponEvaluator, AttackEvaluator} from "../evaluators";
 
 @system((s) => s.after(ThinkSystem).afterWritersOf(BrainComponent))
 export class CombatSystem extends System {
     entities = this.query(
-        (q) =>
-            q.with(BrainComponent, Health, Inventory, GameEntityComponent, VehicleEntityComponent, PositionComponent, MemoryComponent)
-                .added.current.read.using(Target, Selected).write
+        (q) => q
+            .with(BrainComponent, Health, Inventory, VehicleEntityComponent, PositionComponent, MemoryComponent).added.current.read
+            .using(Selected, GameEntityComponent).read
+            .using(Target, Weapon, State).write
     );
-
-    weapons = this.query(q => q.with(Weapon, Packed).write)
-
-    checkable = this.query((q) => q.usingAll.read);
-
-    writeable = this.query((q) => q.using(Weapon, GameEntityComponent, PathRequestComponent, State, PositionComponent).write);
-
 
     execute() {
         for (const entity of this.entities.added) {
@@ -198,10 +191,10 @@ export class CombatSystem extends System {
         // yield
     }
 
-    @co *shoot(entity: Entity, target: Entity) {
+    @co *shoot(entity: Entity, target?: Entity) {
         co.scope(entity);
         // co.cancelIfCoroutineStarted();
-        co.cancelIfComponentMissing(Target);
+        // co.cancelIfComponentMissing(Target);
         const inventory = entity.read(Inventory).contents;
         let armed = false;
         let weapon: Entity | undefined;
@@ -215,10 +208,10 @@ export class CombatSystem extends System {
         if (!armed) {
             return;
         }
-        if (target === weapon && entity.has(Target)) {
-            entity.remove(Target);
-            return;
-        }
+        // if (target === weapon && entity.has(Target)) {
+        //     entity.remove(Target);
+        //     return;
+        // }
 
         yield co.waitForSeconds(0.5);
         if (!weapon || !weapon.__valid || !weapon?.has(Weapon)) return;
@@ -305,7 +298,7 @@ export class CombatSystem extends System {
 
     @co *updateTarget(entity: Entity) {
         co.scope(entity);
-        // co.cancelIfCoroutineStarted();
+        co.cancelIfCoroutineStarted();
         co.cancelIf(() => entity.has(Target) || !entity.has(MemoryComponent));
         // const records = this.owner.memoryRecords;
 
@@ -400,11 +393,11 @@ export class CombatSystem extends System {
 
                 entity.add(Target, {
                     value: t,
-                    position: {
-                        x: selected.lastSensedPosition.x,
-                        y: selected.lastSensedPosition.y,
-                        z: selected.lastSensedPosition.z
-                    }
+                    // position: {
+                    //     x: selected.lastSensedPosition.x,
+                    //     y: selected.lastSensedPosition.y,
+                    //     z: selected.lastSensedPosition.z
+                    // }
                 });
             } catch (e) {
                 console.log(e)

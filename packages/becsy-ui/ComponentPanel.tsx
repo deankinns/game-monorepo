@@ -55,7 +55,7 @@ export const ComponentPanel = (props: { component: any; entity: Entity }) => {
       return <div>invalid {props.component.name}</div>;
     }
 
-    const data = [];
+    const data: { key: string; value: any; }[] = [];
     if (props.component.prototype.constructor.schema) {
       //@ts-ignore
       for (const [key, value] of Object.entries(
@@ -85,6 +85,7 @@ export const ComponentPanel = (props: { component: any; entity: Entity }) => {
           <button onClick={() => removeComponent(props.component)}>
             -
           </button>
+          <button onClick={() => console.log(data)}>log</button>
         </div>
         <textarea
           readOnly={true}

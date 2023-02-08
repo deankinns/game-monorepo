@@ -125,7 +125,7 @@ export const Toolbar = ({actions, children}: any) => {
 
     return <div
         className={"w3-bar w3-black"}
-        style={{top: 0, position: "absolute", display: "flex", zIndex: 999}}
+        style={{top: 0, position: "absolute", display: "flex"}}
     >
         {/*<NewPlayerButton />*/}
         {/*<button*/}

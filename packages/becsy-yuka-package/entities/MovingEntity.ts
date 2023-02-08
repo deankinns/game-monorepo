@@ -16,7 +16,7 @@ export class MovingEntity extends GameEntity implements BaseMovingEntity {
 
     v: Vector3 = new Vector3();
 
-    // velocity: Vector3;
+    velocity: Vector3;
 
     // get velocity(): Vector3 {
     //     return Vector3ToYuka(this.components.read(VelocityComponent).velocity, this.v);
@@ -26,7 +26,7 @@ export class MovingEntity extends GameEntity implements BaseMovingEntity {
     //     this.components?.write(VelocityComponent).setVelocity( value.x, value.y, value.z );
     // }
 
-    velocity: Vector3 = Vector3ToYuka(this.components.read(VelocityComponent).velocity, this.v);
+    // velocity: Vector3 = Vector3ToYuka(this.components.read(VelocityComponent).velocity);
 
     constructor(public components: Entity) {
         super(components);
