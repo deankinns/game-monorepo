@@ -1,5 +1,5 @@
 import { useRef, forwardRef } from 'react'
-import mergeRefs from 'react-merge-refs'
+import {mergeRefs} from 'react-merge-refs'
 
 import { SidePanel, SelectedEntity} from "becsy-ui";
 import Link from "next/link";

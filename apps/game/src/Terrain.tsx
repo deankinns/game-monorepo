@@ -5,6 +5,8 @@ import * as THREE from "three";
 import {Vector3ToYuka} from "yuka-package";
 import {TerrainChunkManager} from 'terrain-generator-package'
 
+import {createConvexRegionHelper} from "three-yuka-package";
+
 export const Terrain = ({actions: {goTo, deselect}}: any) => {
     // const nav = useContext(NavMeshContext);
     // const entityManager = useContext(EntityManagerContext);
@@ -16,9 +18,11 @@ export const Terrain = ({actions: {goTo, deselect}}: any) => {
     const generate = (navMesh: NavMesh, polygons: Polygon[]) => {
         // if (!running.current) {
         //     running.current = true;
-        navMesh.fromPolygons(polygons)
+        navMesh = navMesh.fromPolygons(polygons)
         navMesh.spatialIndex = spatialIndex
         navMesh.updateSpatialIndex()
+
+        console.log(navMesh)
         //     running.current = false;
         // }
 

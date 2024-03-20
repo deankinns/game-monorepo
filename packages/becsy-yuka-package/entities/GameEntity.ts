@@ -1,13 +1,13 @@
 import {GameEntity as BaseGameEntity, Quaternion, Vector3} from "yuka";
 import {Entity} from "@lastolivegames/becsy";
 import {PositionComponent} from "becsy-package";
-import {Vector3ToYuka, QuaternionToYuka} from "yuka-package";
+import {Vector3ToYuka, QuaternionToYuka, componentWrapperInterface} from "yuka-package";
 
 const tempVector = new Vector3();
 const tempQuaternion = new Quaternion();
 
 export class GameEntity extends BaseGameEntity {
-    constructor(public components: Entity) {
+    constructor(public components: componentWrapperInterface) {
         super();
     }
 

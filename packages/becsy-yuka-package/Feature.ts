@@ -21,6 +21,7 @@ export class Feature {
 
     if (enemy.components.has(Inventory)) {
       const inventory = enemy.components.read(Inventory);
+      if (!(inventory instanceof Inventory)) return 0;
     // if (enemy.data.inventory) {
       // const inventory = enemy.entity.read('Inventory');
       // for (const entity of enemy.data.inventory) {

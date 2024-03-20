@@ -24,6 +24,7 @@
     "react": "^18.2.0",
     "react-becsy": "*",
     "react-dom": "^18.2.0",
+    "react-merge-refs": "^2.1.1",
     "react-yuka": "*",
     "sass": "^1.58.0",
     "terrain-generator-package": "*",
@@ -42,6 +43,22 @@
     "typescript": "^4.8.4"
   },
   "bundledDependencies": [
+    "ui",
+    "tsconfig",
+    "becsy-yuka-package",
+    "becsy-package",
+    "becsy-ui",
+    "yuka-package",
+    "yuka-ui",
+    "@lastolivegames/becsy",
+    "react-becsy",
+    "react-yuka",
+    "becsy-fiber",
+    "fiber-package",
+    "three-package",
+    "terrain-generator-package"
+  ],
+  "bundleDependencies": [
     "ui",
     "tsconfig",
     "becsy-yuka-package",

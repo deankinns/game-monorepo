@@ -2,7 +2,7 @@ import {Entity} from "@lastolivegames/becsy";
 import {MemorySystem, Smoother, SteeringManager, Vector3, Vehicle as BaseVehicle, Vision,} from "yuka";
 import {GameEntity} from "./GameEntity";
 import {MovingEntity} from "./MovingEntity";
-import {Vector3ToYuka} from "yuka-package";
+import {Vector3ToYuka, componentWrapperInterface} from "yuka-package";
 import {PositionComponent, VelocityComponent} from "becsy-package";
 
 const steeringForce = new Vector3();
@@ -12,7 +12,7 @@ const target = new Vector3();
 const velocitySmooth = new Vector3();
 
 export class Vehicle extends MovingEntity implements BaseVehicle {
-    constructor(public components: Entity) {
+    constructor(public components: componentWrapperInterface) {
         super(components);
         this.steering = new SteeringManager(this);
 

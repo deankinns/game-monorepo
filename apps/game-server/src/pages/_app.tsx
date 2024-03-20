@@ -15,7 +15,7 @@ import 'becsy-fiber/systems';
 
 import Layout from '@/components/dom/Layout'
 
-const Scene = dynamic(() => import('@/components/canvas/Scene'), {ssr: true})
+const Scene = dynamic(() => import('@/components/canvas/Scene'), {ssr: false})
 const GameWorld = dynamic(() => import('@/components/canvas/GameWorld'), {ssr: false})
 
 export default function App({Component, pageProps}: any) {

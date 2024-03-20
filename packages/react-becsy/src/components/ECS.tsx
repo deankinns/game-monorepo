@@ -43,7 +43,7 @@ export class ECS {
         return cb ? cb(this.world) : null;
     }
 
-    update(time: number, delta: number) {
+    update(time?: number, delta?: number) {
         this.world?.execute(time, delta);
     }
 

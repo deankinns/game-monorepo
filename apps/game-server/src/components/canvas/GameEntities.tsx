@@ -4,13 +4,9 @@ import {Weapons} from "becsy-fiber/src/Weapons";
 import {BulletWrapper} from "becsy-fiber/src/BulletWrapper";
 import {useEntities} from "@/hooks/useEntities";
 import {useEcsStore, useEntity} from "react-becsy";
-import {RenderComponent} from "becsy-package";
 import {Box} from "@react-three/drei";
-import {useRef} from "react";
-import {Object3DComponent, Robot} from "becsy-fiber";
 import {Entity} from "@lastolivegames/becsy";
 import {Health, Inventory} from "becsy-package";
-import {BrainComponent, MemoryComponent, VehicleEntityComponent, VisionComponent} from "becsy-yuka-package";
 
 export default function GameEntities() {
     const [ids] = useEntities(s => [s.ids]);

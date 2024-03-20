@@ -64,7 +64,12 @@ export class NavigationSystem extends System {
         for (const entity of this.navigators.added) {
             // entity.add(NavigatorComponent, {navMesh: this.singleton});
             for (const navMesh of this.navMeshes.current) {
+                if (entity.has(NavigatorComponent)) {
+                    entity.write(NavigatorComponent).navMesh = navMesh;
+                    continue
+                }
                 entity.add(NavigatorComponent, {navMesh: navMesh});
+                continue
             }
         }
 

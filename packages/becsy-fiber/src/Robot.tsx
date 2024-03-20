@@ -8,7 +8,7 @@ import React, {
     useImperativeHandle,
     useMemo,
     useRef,
-    memo, useState
+    memo, useState, MutableRefObject
 } from "react";
 import * as THREE from "three";
 import {useFrame} from "@react-three/fiber";
@@ -143,6 +143,26 @@ export const Robot =(props: { entity: Entity; onClick: any; position?: any }) =>
         }
     }, [ecs, physicsSystem, props.entity])
 
+    const animate = (ref: MutableRefObject<any>, speed: number, maxSpeed: number, armed: false) => {
+        if (props.entity.has(State)) {
+            const v = props.entity.read(State).value;
+            ref.current?.setSelectedAction(v);
+        } else if (speed > maxSpeed * .1) {
+            ref.current?.setSelectedAction(armed ? 'rifle/Rifle Run' : 'Running');
+        } else if (speed > maxSpeed * .01) {
+            ref.current?.setSelectedAction(armed ? 'rifle/Rifle Run' : 'Walking');
+        } else {
+            ref.current?.setSelectedAction(armed ? 'rifle/rifle aiming idle' : 'LookingAround');
+        }
+
+        if (!ref.current?.actions['Falling Idle'].isRunning()) {
+            ref.current?.actions['Falling Idle'].play()
+        }
+
+        ref.current?.actions['Falling Idle'].setEffectiveWeight(airborneTime.current);
+        airborneTime.current = Math.max(0, airborneTime.current - 0.1);
+    }
+
     useFrame((state, delta, frame) => {
         if (!props.entity || !props.entity.__valid || !props.entity.alive) return;
         const vehicle = props.entity.read(GameEntityComponent).entity as Vehicle;
@@ -249,30 +269,11 @@ export const Robot =(props: { entity: Entity; onClick: any; position?: any }) =>
             })
         }
 
-        animate(speed, maxSpeed, armed)
+        animate(dummyRef, speed, maxSpeed, armed)
 
         // airborne.current = true;
     }, -1);
 
-    const animate = (speed: number, maxSpeed: number, armed: false) => {
-        if (props.entity.has(State)) {
-            const v = props.entity.read(State).value;
-            dummyRef.current?.setSelectedAction(v);
-        } else if (speed > maxSpeed * .1) {
-            dummyRef.current?.setSelectedAction(armed ? 'rifle/Rifle Run' : 'Running');
-        } else if (speed > maxSpeed * .01) {
-            dummyRef.current?.setSelectedAction(armed ? 'rifle/Rifle Run' : 'Walking');
-        } else {
-            dummyRef.current?.setSelectedAction(armed ? 'rifle/rifle aiming idle' : 'LookingAround');
-        }
-
-        if (!dummyRef.current?.actions['Falling Idle'].isRunning()) {
-            dummyRef.current?.actions['Falling Idle'].play()
-        }
-
-        dummyRef.current?.actions['Falling Idle'].setEffectiveWeight(airborneTime.current);
-        airborneTime.current = Math.max(0, airborneTime.current - 0.1);
-    }
     //
     // if (!props.entity || !props.entity.alive || !props.entity.__valid) {
     //     return null

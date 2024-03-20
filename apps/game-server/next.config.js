@@ -12,6 +12,7 @@ const withTM = require("next-transpile-modules")([
     "becsy-fiber",
     "fiber-package",
     "three-package",
+    "three-yuka-package",
     "terrain-generator-package"
 ]);
 //

@@ -51,7 +51,7 @@ export const useEcsStore = create<EcsState>()(devtools((set, get) => ({
             // set({systems: ecs.world.__dispatcher.systemsByClass.values()})
         }
     },
-    update: async (time: number, delta: number) => {
+    update: async (time?: number, delta?: number) => {
         await get().ecs.update(time, delta);
         // set({count: time});
     },

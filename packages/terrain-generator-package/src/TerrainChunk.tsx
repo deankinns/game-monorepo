@@ -103,7 +103,7 @@ export const TerrainChunk = memo(({wireframe = true, width = 1, offset = {x: 0, 
             userData={{type: 'terrain', points: points, resolution: resolution}}
         >
             <planeGeometry args={[size.x, size.z, resolution, resolution]}/>
-
+            {/*<WireframeMaterial/>*/}
             <Suspense fallback={<WireframeMaterial/>}>
                 {wireframe ? <WireframeMaterial/> : <MountainMaterial/>}
             </Suspense>

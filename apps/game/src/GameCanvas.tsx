@@ -134,19 +134,19 @@ export const GameCanvas = ({orbit}: { orbit: boolean }) => {
 
     useEffect(() => {
         scene.current?.remove(regionHelper.current);
-        scene.current?.remove(indexHelper.current);
+        // scene.current?.remove(indexHelper.current);
         if (navMesh && debug) {
 
 
-            // console.log('update')
+            console.log('update', navMesh)
             regionHelper.current = createConvexRegionHelper(navMesh);
             scene.current?.add(regionHelper.current);
 
-            if (navMesh.spatialIndex) {
-
-                indexHelper.current = createCellSpaceHelper(navMesh.spatialIndex);
-                scene.current?.add(indexHelper.current);
-            }
+            // if (navMesh.spatialIndex) {
+            //
+            //     indexHelper.current = createCellSpaceHelper(navMesh.spatialIndex);
+            //     scene.current?.add(indexHelper.current);
+            // }
 
         }
 

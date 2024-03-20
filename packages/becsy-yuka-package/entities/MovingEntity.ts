@@ -2,7 +2,7 @@ import {MovingEntity as BaseMovingEntity, Vector3} from "yuka";
 import {Entity} from "@lastolivegames/becsy";
 import {GameEntity} from "./GameEntity";
 import {VelocityComponent} from "becsy-package";
-import {Vector3ToYuka} from "yuka-package";
+import {componentWrapperInterface, Vector3ToYuka} from "yuka-package";
 
 
 const displacement$4 = new Vector3();
@@ -28,7 +28,7 @@ export class MovingEntity extends GameEntity implements BaseMovingEntity {
 
     // velocity: Vector3 = Vector3ToYuka(this.components.read(VelocityComponent).velocity);
 
-    constructor(public components: Entity) {
+    constructor(public components: componentWrapperInterface) {
         super(components);
         this.velocity = new Vector3();
     }

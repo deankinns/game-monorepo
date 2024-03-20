@@ -5,10 +5,15 @@ import {Debug, Physics} from "@react-three/rapier";
 // import GameWorld from "@/components/canvas/GameWorld";
 import {useDebug} from "fiber-package/src/UseDebug";
 
+// import {navMeshHelper} from "yuka";
+import {createConvexRegionHelper} from "three-yuka-package";
+import {useEffect} from "react";
+
 export default function Scene({children, ...props}: any) {
 
     const [debug] = useDebug(state => [state.debug]);
     // Everything defined in here will persist between route changes, only children are swapped
+
     return (
         <Canvas {...props}
                 style={{width: '100vw', height: '100vh', position: 'fixed', top: 0, left: 0}}
@@ -34,7 +39,8 @@ const Update = () => {
     // useBeforePhysicsStep()
 
     useFrame((state, delta, frame) => {
-        update(frame, delta);
+
+        update(state.clock.elapsedTime, delta);
         state.gl.render(state.scene, state.camera);
         // state.camera.ren
         // step(delta);
